@@ -1,7 +1,1 @@
-# Moar CLI
-
-Module Mangement *and moar!*  
-
-## Overview
-
-TBD
+cli/README.md

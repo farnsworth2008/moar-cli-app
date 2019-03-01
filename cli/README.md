@@ -12,7 +12,6 @@ With the **Moar CLI** multi-module builds are managed using modules that exist a
 
 A developer with two libraries used by six applications the [Git Submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules) must manage eighteen repositories on their workstations.  Keepoing all the modules in sync with pulls and pushes can be quite a chore.  Using **Moar CLI** the environment is managed with only the eight top level modules.
 
-
 ## Usage
 
 All modules are managed in `~/moar-workspace`.  
