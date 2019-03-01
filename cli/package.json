@@ -28,14 +28,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/moar-stuff/moar-cli.git"
+    "url": "git+https://github.com/moar-stuff/moar-cli-app.git"
   },
   "author": "Mark Farnsworth",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/moar-stuff/moar-cli/issues"
+    "url": "https://github.com/moar-stuff/moar-cli-app/issues"
   },
-  "homepage": "https://github.com/moar-stuff/moar-cli#README",
+  "homepage": "https://github.com/moar-stuff/moar-cli-app#README",
   "dependencies": {
     "@babel/polyfill": "^7.2.5"
   },
