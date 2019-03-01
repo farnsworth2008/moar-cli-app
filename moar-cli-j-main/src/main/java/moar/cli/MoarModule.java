@@ -39,12 +39,20 @@ public class MoarModule {
     return safely(() -> exec(command, dir));
   }
 
+  public List<String> getAheadCommits() {
+    return aheadCommits;
+  }
+
   public Integer getAheadCount() {
     if (aheadCommits == null) {
       var command = format("git log --oneline %s.. 2> /dev/null", getUpstreamBranch());
       aheadCommits = listCommandResults(command);
     }
     return aheadCommits.size();
+  }
+
+  public List<String> getAheadOriginCommits() {
+    return aheadOriginCommits;
   }
 
   public Integer getAheadOriginCount() {
@@ -55,6 +63,10 @@ public class MoarModule {
     return aheadOriginCommits.size();
   }
 
+  public List<String> getBehindCommits() {
+    return behindCommits;
+  }
+
   public Integer getBehindCount() {
     if (behindCommits == null) {
       var command = format("git log --oneline ..%s 2> /dev/null", getUpstreamBranch());
@@ -63,12 +75,20 @@ public class MoarModule {
     return behindCommits.size();
   }
 
+  public List<String> getBehindMasterCommits() {
+    return behindMasterCommits;
+  }
+
   public Integer getBehindMasterCount() {
     if (behindMasterCommits == null) {
       var command = format("git log --oneline origin/develop..origin/master 2> /dev/null", getUpstreamBranch());
       behindMasterCommits = listCommandResults(command);
     }
     return behindMasterCommits.size();
+  }
+
+  public List<String> getBehindOriginCommits() {
+    return behindOriginCommits;
   }
 
   public Integer getBehindOriginCount() {
@@ -95,6 +115,10 @@ public class MoarModule {
     return uncommitedFiles.size();
   }
 
+  public List<String> getUncommitedFiles() {
+    return uncommitedFiles;
+  }
+
   public String getUpstreamBranch() {
     if (upstreamBranch == null) {
       ExecuteResult result = swallow(() -> exec("git rev-parse --abbrev-ref @{upstream}", dir));
@@ -114,6 +138,7 @@ public class MoarModule {
     var list = new ArrayList<String>();
     var lineList = toLineList(statusOutput);
     for (String line : lineList) {
+      line = line.strip();
       if (!line.isBlank()) {
         list.add(line);
       }
@@ -125,5 +150,4 @@ public class MoarModule {
   public String toString() {
     return dir.toString();
   }
-
 }

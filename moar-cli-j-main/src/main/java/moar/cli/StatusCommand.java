@@ -2,12 +2,18 @@ package moar.cli;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Math.max;
+import static java.lang.String.format;
 import static java.lang.System.getProperty;
 import static java.lang.ThreadLocal.withInitial;
 import static java.util.Collections.sort;
+import static moar.sugar.Ansi.BLUE;
+import static moar.sugar.Ansi.GREEN;
+import static moar.sugar.Ansi.PURPLE;
+import static moar.sugar.Ansi.RED;
 import static moar.sugar.Ansi.blue;
 import static moar.sugar.Ansi.cyan;
 import static moar.sugar.Ansi.green;
+import static moar.sugar.Ansi.purple;
 import static moar.sugar.Ansi.red;
 import static moar.sugar.MoarStringUtil.fileContentsAsString;
 import static moar.sugar.Sugar.nonNull;
@@ -16,6 +22,7 @@ import static moar.sugar.thread.MoarThreadSugar.$;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 import moar.sugar.Ansi;
@@ -106,6 +113,44 @@ public class StatusCommand {
     return workspace;
   }
 
+  private void outputCommand(Ansi color, String command) {
+    var pad = "       === ";
+    var summary = module.get().execCommand(format(command, module.get().getUpstreamBranch()));
+    out.println(color.apply(pad + summary.get().getOutput().strip()));
+  }
+
+  private void outputDetail() {
+    MoarModule module = this.module.get();
+    if (outputDetailLines(BLUE, module.getUncommitedFiles())) {
+      outputCommand(BLUE, "git diff --shortstat HEAD");
+    }
+    module.getUpstreamBranch();
+    if (outputDetailLines(GREEN, module.getAheadCommits())) {
+      outputCommand(GREEN, "git diff --shortstat %s..");
+    }
+    if (outputDetailLines(RED, module.getBehindCommits())) {
+      outputCommand(RED, "git diff --shortstat ..%s");
+    }
+    if (outputDetailLines(GREEN, module.getAheadOriginCommits())) {
+      outputCommand(GREEN, "git diff --shortstat origin/develop..%s");
+    }
+    if (outputDetailLines(RED, module.getBehindOriginCommits())) {
+      outputCommand(RED, "git diff --shortstat %s..origin/develop");
+    }
+    if (outputDetailLines(PURPLE, module.getBehindMasterCommits())) {
+      outputCommand(PURPLE, "git diff --shortstat origin/develop..origin/master");
+    }
+    out.println();
+  }
+
+  private Boolean outputDetailLines(Ansi color, List<String> lines) {
+    var i = 0;
+    for (var line : lines) {
+      out.println(format("%s - %s", color.apply(format("%6d", ++i)), color.apply(line)));
+    }
+    return !lines.isEmpty();
+  }
+
   private void outputLine(Integer maxLineLen) {
     Integer lineLen = getLineLen();
     StringBuilder b = new StringBuilder();
@@ -121,7 +166,7 @@ public class StatusCommand {
       b.append(") ");
     }
     if (behindMasterCount.get() != 0) {
-      b.append(blue(behindMasterCount.get()));
+      b.append(purple(behindMasterCount.get()));
     }
     out.println(b.toString());
   }
@@ -138,7 +183,9 @@ public class StatusCommand {
   }
 
   void run(String... args) {
-    String filter = args.length > 1 ? args[1] : ".*";
+    String filterArg = args.length > 1 ? args[1] : "";
+    String filter = filterArg.isEmpty() ? ".*" : filterArg;
+    Boolean detail = args.length > 2 ? args[2].equals("--detail") : FALSE;
 
     var workspace = getWorkspace();
     var modules = getModules(workspace);
@@ -182,6 +229,9 @@ public class StatusCommand {
         this.module.set(module);
         processModule();
         outputLine(maxLineLen.get());
+        if (detail) {
+          outputDetail();
+        }
       }
     }
   }

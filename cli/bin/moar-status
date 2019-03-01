@@ -8,4 +8,4 @@ if [ ${unsupportedJava} != "0" ]; then
     exit 1;
 fi
 
-java -Dmoar.ansi.enabled=true -jar ${binDir}/moar-cli-j-main.fat.jar 'status' $1
+java -Dmoar.ansi.enabled=true -jar ${binDir}/moar-cli-j-main.fat.jar 'status' "$1" "$2"
