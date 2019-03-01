@@ -8,4 +8,4 @@ else
     filter=$1
 fi
 
-moar-each "${filter}" 'git remote update'
+moar-each "${filter}" 'git remote update &> /dev/null'

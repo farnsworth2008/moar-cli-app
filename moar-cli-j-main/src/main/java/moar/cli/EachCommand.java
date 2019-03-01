@@ -12,6 +12,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
+import moar.ansi.Ansi;
 import moar.sugar.ExecuteResult;
 import moar.sugar.SafeResult;
 
@@ -54,27 +55,32 @@ public class EachCommand {
     var map = new HashMap<String, String>();
 
     require(() -> {
+      var progress = Ansi.progress(out, "Processing");
       var after = new Vector<Runnable>();
-      try (var async = $(100)) {
+      try (var async = $(4)) {
         var futures = $();
         for (var module : modules) {
-          String name = module.getName();
-          boolean filterMatches = name.matches(filter);
-          boolean ignoreMatches = name.matches(ignore);
-          if (filterMatches && !ignoreMatches) {
-            $(async, futures, () -> {
+          $(async, futures, () -> {
+            String name = module.getName();
+            boolean filterMatches = name.matches(filter);
+            boolean ignoreMatches = name.matches(ignore);
+            if (filterMatches && !ignoreMatches) {
               SafeResult<ExecuteResult> result = module.execCommand(command);
               String output = result.threw() ? result.thrown().getMessage() : result.get().getOutput();
               after.add(() -> {
                 map.put(module.getName(), output);
               });
-            });
-          }
+              synchronized (progress) {
+                progress.set((float) after.size() / modules.size());
+              }
+            }
+          });
         }
         $(futures);
         for (var task : after) {
           task.run();
         }
+        progress.clear();
       }
 
       for (var module : modules) {

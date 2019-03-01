@@ -20,7 +20,6 @@ import static moar.sugar.MoarStringUtil.fileContentsAsString;
 import static moar.sugar.MoarStringUtil.truncate;
 import static moar.sugar.Sugar.nonNull;
 import static moar.sugar.Sugar.require;
-import static moar.sugar.Sugar.swallow;
 import static moar.sugar.thread.MoarThreadSugar.$;
 import java.io.File;
 import java.io.PrintStream;
@@ -29,6 +28,7 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 import moar.ansi.Ansi;
+import moar.sugar.thread.MoarAsyncProvider;
 
 public class StatusCommand {
 
@@ -43,9 +43,69 @@ public class StatusCommand {
   private final ThreadLocal<String> moduleName = withInitial(() -> null);
   private final ThreadLocal<MoarModule> module = withInitial(() -> null);
   private final ThreadLocal<File> currentModuleDir = withInitial(() -> null);
+  private MoarAsyncProvider async;
 
   public StatusCommand(PrintStream out) {
     this.out = out;
+  }
+
+  private void doRun(String... args) {
+    String filterArg = args.length > 1 ? args[1] : "";
+    String filter = filterArg.isEmpty() ? ".*" : filterArg;
+    Boolean detail = args.length > 2 ? args[2].equals("--detail") : FALSE;
+
+    var workspace = getWorkspace();
+    var modules = getModules(workspace);
+    currentModuleDir.set(getCurrentModule(workspace));
+
+    File ignoreFile = new File(workspace, ".ignore");
+    String ignore = nonNull(fileContentsAsString(ignoreFile).strip(), "^$");
+    AtomicInteger maxLineLen = new AtomicInteger();
+
+    var progress = progress(out, "Scanning");
+    require(() -> {
+      var after = new Vector<Runnable>();
+      var futures = $();
+      try (var scanAsync = $(4)) {
+        for (var module : modules) {
+          $(scanAsync, futures, () -> {
+            String name = module.getName();
+            boolean filterMatches = name.matches(filter);
+            boolean ignoreMatches = name.matches(ignore);
+            if (filterMatches && !ignoreMatches) {
+              this.module.set(module);
+              processModule();
+              Integer lineLen = getLineLen();
+              after.add(() -> {
+                maxLineLen.set(max(maxLineLen.get(), lineLen));
+              });
+              synchronized (progress) {
+                progress.set((float) after.size() / modules.size());
+              }
+            }
+          });
+        }
+        $(futures);
+      }
+      for (var task : after) {
+        task.run();
+      }
+    });
+    progress.clear();
+
+    for (var module : modules) {
+      String name = module.getName();
+      boolean filterMatches = name.matches(filter);
+      boolean ignoreMatches = name.matches(ignore);
+      if (filterMatches && !ignoreMatches) {
+        this.module.set(module);
+        processModule();
+        outputLine(maxLineLen.get());
+        if (detail) {
+          outputDetail();
+        }
+      }
+    }
   }
 
   private File getCurrentModule(File workspace) {
@@ -181,72 +241,32 @@ public class StatusCommand {
   }
 
   private void processModule() {
-    moduleName.set(module.get().getName());
-    upstreamBranch.set(module.get().getUpstreamBranch());
-    uncommitedCount.set(module.get().getUncommitedCount());
-    aheadCount.set(module.get().getAheadCount());
-    behindCount.set(module.get().getBehindCount());
-    aheadOriginCount.set(module.get().getAheadOriginCount());
-    behindOriginCount.set(module.get().getBehindOriginCount());
-    behindMasterCount.set(module.get().getBehindMasterCount());
+    MoarModule module = this.module.get();
+    moduleName.set(module.getName());
+    upstreamBranch.set(module.getUpstreamBranch());
+    require(() -> {
+      var futures = $(Integer.class);
+      var uncommitedFuture = $(async, futures, () -> module.getUncommitedCount());
+      var aheadFuture = $(async, futures, () -> module.getAheadCount());
+      var behindFuture = $(async, futures, () -> module.getBehindCount());
+      var aheadOriginFuture = $(async, futures, () -> module.getAheadOriginCount());
+      var behindOriginFuture = $(async, futures, () -> module.getBehindOriginCount());
+      var behindMasterFuture = $(async, futures, () -> module.getBehindMasterCount());
+      uncommitedCount.set(uncommitedFuture.get());
+      aheadCount.set(aheadFuture.get());
+      behindCount.set(behindFuture.get());
+      aheadOriginCount.set(aheadOriginFuture.get());
+      behindOriginCount.set(behindOriginFuture.get());
+      behindMasterCount.set(behindMasterFuture.get());
+    });
   }
 
   void run(String... args) {
-    String filterArg = args.length > 1 ? args[1] : "";
-    String filter = filterArg.isEmpty() ? ".*" : filterArg;
-    Boolean detail = args.length > 2 ? args[2].equals("--detail") : FALSE;
-
-    var workspace = getWorkspace();
-    var modules = getModules(workspace);
-    currentModuleDir.set(getCurrentModule(workspace));
-
-    File ignoreFile = new File(workspace, ".ignore");
-    String ignore = nonNull(fileContentsAsString(ignoreFile).strip(), "^$");
-    AtomicInteger maxLineLen = new AtomicInteger();
-
-    var progress = progress(out, "Scanning");
-    require(() -> {
-      try (var async = $(100)) {
-        var afterAll = new Vector<Runnable>();
-        var futures = $();
-        for (var module : modules) {
-          $(async, futures, () -> {
-            String name = module.getName();
-            boolean filterMatches = name.matches(filter);
-            boolean ignoreMatches = name.matches(ignore);
-            if (filterMatches && !ignoreMatches) {
-              this.module.set(module);
-              processModule();
-              Integer lineLen = getLineLen();
-              afterAll.add(() -> {
-                maxLineLen.set(max(maxLineLen.get(), lineLen));
-              });
-            }
-            synchronized (progress) {
-              progress.set((float) afterAll.size() / modules.size());
-            }
-          });
-        }
-        $(futures);
-        for (var task : afterAll) {
-          task.run();
-        }
-      }
-    });
-    progress.clear();
-
-    for (var module : modules) {
-      String name = module.getName();
-      boolean filterMatches = name.matches(filter);
-      boolean ignoreMatches = name.matches(ignore);
-      if (filterMatches && !ignoreMatches) {
-        this.module.set(module);
-        processModule();
-        outputLine(maxLineLen.get());
-        if (detail) {
-          outputDetail();
-        }
-      }
+    async = $(4);
+    try {
+      doRun(args);
+    } finally {
+      async.shutdown();
     }
   }
 
