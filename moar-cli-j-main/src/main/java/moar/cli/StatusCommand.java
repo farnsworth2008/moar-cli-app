@@ -6,19 +6,21 @@ import static java.lang.String.format;
 import static java.lang.System.getProperty;
 import static java.lang.ThreadLocal.withInitial;
 import static java.util.Collections.sort;
-import static moar.sugar.Ansi.BLUE;
-import static moar.sugar.Ansi.GREEN;
-import static moar.sugar.Ansi.PURPLE;
-import static moar.sugar.Ansi.RED;
-import static moar.sugar.Ansi.blue;
-import static moar.sugar.Ansi.cyan;
-import static moar.sugar.Ansi.green;
-import static moar.sugar.Ansi.purple;
-import static moar.sugar.Ansi.red;
+import static moar.ansi.Ansi.BLUE;
+import static moar.ansi.Ansi.GREEN;
+import static moar.ansi.Ansi.PURPLE;
+import static moar.ansi.Ansi.RED;
+import static moar.ansi.Ansi.blue;
+import static moar.ansi.Ansi.cyan;
+import static moar.ansi.Ansi.green;
+import static moar.ansi.Ansi.progress;
+import static moar.ansi.Ansi.purple;
+import static moar.ansi.Ansi.red;
 import static moar.sugar.MoarStringUtil.fileContentsAsString;
 import static moar.sugar.MoarStringUtil.truncate;
 import static moar.sugar.Sugar.nonNull;
 import static moar.sugar.Sugar.require;
+import static moar.sugar.Sugar.swallow;
 import static moar.sugar.thread.MoarThreadSugar.$;
 import java.io.File;
 import java.io.PrintStream;
@@ -26,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
-import moar.sugar.Ansi;
+import moar.ansi.Ansi;
 
 public class StatusCommand {
 
@@ -202,6 +204,7 @@ public class StatusCommand {
     String ignore = nonNull(fileContentsAsString(ignoreFile).strip(), "^$");
     AtomicInteger maxLineLen = new AtomicInteger();
 
+    var progress = progress(out, "Scanning");
     require(() -> {
       try (var async = $(100)) {
         var afterAll = new Vector<Runnable>();
@@ -219,6 +222,9 @@ public class StatusCommand {
                 maxLineLen.set(max(maxLineLen.get(), lineLen));
               });
             }
+            synchronized (progress) {
+              progress.set((float) afterAll.size() / modules.size());
+            }
           });
         }
         $(futures);
@@ -227,6 +233,7 @@ public class StatusCommand {
         }
       }
     });
+    progress.clear();
 
     for (var module : modules) {
       String name = module.getName();

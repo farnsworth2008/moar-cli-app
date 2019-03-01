@@ -19,7 +19,7 @@
     "moar-status": "bin/moar-status",
     "moar-update": "bin/moar-update"
   },
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "Stuff to make Java sweet!",
   "main": "moar-json.js",
   "scripts": {

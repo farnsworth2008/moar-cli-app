@@ -2,7 +2,7 @@ package moar.cli;
 
 import static java.lang.System.getProperty;
 import static java.util.Collections.sort;
-import static moar.sugar.Ansi.cyan;
+import static moar.ansi.Ansi.cyan;
 import static moar.sugar.MoarStringUtil.fileContentsAsString;
 import static moar.sugar.Sugar.nonNull;
 import static moar.sugar.Sugar.require;
