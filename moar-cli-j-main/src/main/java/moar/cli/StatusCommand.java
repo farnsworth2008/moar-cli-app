@@ -85,7 +85,7 @@ public class StatusCommand {
         b.append(") ");
       }
       b.append("-".repeat(padding) + "-> ");
-      b.append(upstreamBranch.get());
+      b.append(upstreamBranch.get().replaceAll("^fork/", "").replaceAll("^feature/", ""));
       return b.toString();
     } finally {
       Ansi.enabled(priorEnabled);
