@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e
+
+if [ "$1" == "" ]; then
+    filter="^$(basename `pwd`)$"
+else
+    filter=$1
+fi
+
+moar-status "$filter" '--detail'

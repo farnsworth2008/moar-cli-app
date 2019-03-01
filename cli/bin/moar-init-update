@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e
+
+if [ "$1" == "" ]; then
+    filter=".*"
+else
+    filter=$1
+fi
+
+moar-each "${filter}" 'moar-clone-modules'

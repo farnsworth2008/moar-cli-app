@@ -1,0 +1,10 @@
+.DS_Store
+.classpath
+.gradle
+.project
+.settings
+/gradle
+/gradlew
+build
+moar-sugar
+.java-version

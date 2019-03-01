@@ -1,0 +1,41 @@
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+
+  dependencies {
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:2.0.6.RELEASE"
+  }
+}
+
+plugins {
+  id "application"
+}
+apply plugin: "org.springframework.boot"
+apply plugin: "io.spring.dependency-management"
+
+dependencies {
+  compile project(":moar-sugar")
+  compile "org.springframework.boot:spring-boot-starter"
+}
+
+application {
+  mainClassName = "Main"
+}
+
+task fatJar(type: Jar) {
+  manifest {
+    attributes(
+      "Main-Class": "Main",
+      "Specification-Title": "moar-cli-j",
+      "Specification-Version": System.getProperty("build_version", "unknown"),
+    )
+  }
+  baseName = project.name + ".fat"
+  from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+  with jar
+}
+
+run {
+  systemProperties System.getProperties()
+}
