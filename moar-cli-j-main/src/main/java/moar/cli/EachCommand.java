@@ -2,6 +2,7 @@ package moar.cli;
 
 import static java.lang.System.getProperty;
 import static java.util.Collections.sort;
+import static moar.sugar.Ansi.cyan;
 import static moar.sugar.MoarStringUtil.fileContentsAsString;
 import static moar.sugar.Sugar.nonNull;
 import static moar.sugar.Sugar.require;
@@ -11,7 +12,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
-import moar.sugar.Ansi;
 import moar.sugar.ExecuteResult;
 import moar.sugar.SafeResult;
 
@@ -82,9 +82,12 @@ public class EachCommand {
         boolean filterMatches = name.matches(filter);
         boolean ignoreMatches = name.matches(ignore);
         if (filterMatches && !ignoreMatches) {
-          out.println(Ansi.cyan(module.getName()));
-          out.println(map.get(module.getName()));
-          out.println();
+          String output = map.get(module.getName());
+          if (!output.strip().isEmpty()) {
+            out.println(cyan(module.getName()));
+            out.println(output);
+            out.println();
+          }
         }
       }
     });
