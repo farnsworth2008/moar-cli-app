@@ -12,6 +12,7 @@ import moar.sugar.ExecuteResult;
 import moar.sugar.SafeResult;
 
 public class MoarModule {
+  private static final String GIT_LOG = "git log --no-color '--pretty=%h %aN %s' ";
   final File dir;
   private String upstreamBranch;
   private List<String> uncommitedFiles;
@@ -45,7 +46,7 @@ public class MoarModule {
 
   public Integer getAheadCount() {
     if (aheadCommits == null) {
-      var command = format("git log --oneline %s.. 2> /dev/null", getUpstreamBranch());
+      var command = GIT_LOG + format("%s.. 2> /dev/null", getUpstreamBranch());
       aheadCommits = listCommandResults(command);
     }
     return aheadCommits.size();
@@ -57,7 +58,7 @@ public class MoarModule {
 
   public Integer getAheadOriginCount() {
     if (aheadOriginCommits == null) {
-      var command = format("git log --oneline origin/develop..%s 2> /dev/null", getUpstreamBranch());
+      var command = GIT_LOG + format("origin/develop..%s 2> /dev/null", getUpstreamBranch());
       aheadOriginCommits = listCommandResults(command);
     }
     return aheadOriginCommits.size();
@@ -69,7 +70,7 @@ public class MoarModule {
 
   public Integer getBehindCount() {
     if (behindCommits == null) {
-      var command = format("git log --oneline ..%s 2> /dev/null", getUpstreamBranch());
+      var command = GIT_LOG + format("..%s 2> /dev/null", getUpstreamBranch());
       behindCommits = listCommandResults(command);
     }
     return behindCommits.size();
@@ -81,7 +82,7 @@ public class MoarModule {
 
   public Integer getBehindMasterCount() {
     if (behindMasterCommits == null) {
-      var command = format("git log --oneline origin/develop..origin/master 2> /dev/null", getUpstreamBranch());
+      var command = GIT_LOG + format("origin/develop..origin/master 2> /dev/null", getUpstreamBranch());
       behindMasterCommits = listCommandResults(command);
     }
     return behindMasterCommits.size();
@@ -93,7 +94,7 @@ public class MoarModule {
 
   public Integer getBehindOriginCount() {
     if (behindOriginCommits == null) {
-      var command = format("git log --oneline %s..origin/develop 2> /dev/null", getUpstreamBranch());
+      var command = GIT_LOG + format("%s..origin/develop 2> /dev/null", getUpstreamBranch());
       behindOriginCommits = listCommandResults(command);
     }
     return behindOriginCommits.size();

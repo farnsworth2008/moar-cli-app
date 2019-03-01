@@ -16,6 +16,7 @@ import static moar.sugar.Ansi.green;
 import static moar.sugar.Ansi.purple;
 import static moar.sugar.Ansi.red;
 import static moar.sugar.MoarStringUtil.fileContentsAsString;
+import static moar.sugar.MoarStringUtil.truncate;
 import static moar.sugar.Sugar.nonNull;
 import static moar.sugar.Sugar.require;
 import static moar.sugar.thread.MoarThreadSugar.$;
@@ -113,32 +114,26 @@ public class StatusCommand {
     return workspace;
   }
 
-  private void outputCommand(Ansi color, String command) {
-    var pad = "       === ";
-    var summary = module.get().execCommand(format(command, module.get().getUpstreamBranch()));
-    out.println(color.apply(pad + summary.get().getOutput().strip()));
-  }
-
   private void outputDetail() {
     MoarModule module = this.module.get();
     if (outputDetailLines(BLUE, module.getUncommitedFiles())) {
-      outputCommand(BLUE, "git diff --shortstat HEAD");
+      outputShortStat(BLUE, "git diff --shortstat HEAD");
     }
     module.getUpstreamBranch();
     if (outputDetailLines(GREEN, module.getAheadCommits())) {
-      outputCommand(GREEN, "git diff --shortstat %s..");
+      outputShortStat(GREEN, "git diff --shortstat %s..");
     }
     if (outputDetailLines(RED, module.getBehindCommits())) {
-      outputCommand(RED, "git diff --shortstat ..%s");
+      outputShortStat(RED, "git diff --shortstat ..%s");
     }
     if (outputDetailLines(GREEN, module.getAheadOriginCommits())) {
-      outputCommand(GREEN, "git diff --shortstat origin/develop..%s");
+      outputShortStat(GREEN, "git diff --shortstat origin/develop..%s");
     }
     if (outputDetailLines(RED, module.getBehindOriginCommits())) {
-      outputCommand(RED, "git diff --shortstat %s..origin/develop");
+      outputShortStat(RED, "git diff --shortstat %s..origin/develop");
     }
     if (outputDetailLines(PURPLE, module.getBehindMasterCommits())) {
-      outputCommand(PURPLE, "git diff --shortstat origin/develop..origin/master");
+      outputShortStat(PURPLE, "git diff --shortstat origin/develop..origin/master");
     }
     out.println();
   }
@@ -146,7 +141,10 @@ public class StatusCommand {
   private Boolean outputDetailLines(Ansi color, List<String> lines) {
     var i = 0;
     for (var line : lines) {
-      out.println(format("%s - %s", color.apply(format("%6d", ++i)), color.apply(line)));
+      var lineNumber = ++i;
+      var formattedLine = format("%s - %s", color.apply(format("%6d", lineNumber)), color.apply(line));
+      formattedLine = truncate(formattedLine, 100, "...");
+      out.println(color.apply(formattedLine));
     }
     return !lines.isEmpty();
   }
@@ -169,6 +167,15 @@ public class StatusCommand {
       b.append(purple(behindMasterCount.get()));
     }
     out.println(b.toString());
+  }
+
+  private void outputShortStat(Ansi color, String command) {
+    var pad = "       === ";
+    MoarModule module = this.module.get();
+    String branch = module.getUpstreamBranch();
+    String output = module.execCommand(format(command, branch)).get().getOutput();
+    var summary = output.strip().replaceAll("( changed| insertions| deletions)", "");
+    out.println(color.apply(pad + summary));
   }
 
   private void processModule() {
