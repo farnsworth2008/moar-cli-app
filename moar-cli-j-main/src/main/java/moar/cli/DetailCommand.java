@@ -1,9 +1,9 @@
 package moar.cli;
 
-import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 import moar.sugar.MoarException;
 
-public class StatusCommand
+public class DetailCommand
     extends
     BaseStatusCommand {
 
@@ -19,11 +19,10 @@ public class StatusCommand
       }
       filter = arg;
     }
-    var defaultFilter = ".*";
     if (filter.isEmpty()) {
-      filter = defaultFilter;
+      filter = String.format("^%s$", getCurrentModuleDir().getName());
     }
-    doStatus(filter, FALSE);
+    doStatus(filter, TRUE);
   }
 
 }

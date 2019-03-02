@@ -21,6 +21,7 @@ public class MoarModule {
   private List<String> aheadOriginCommits;
   private List<String> behindOriginCommits;
   private List<String> behindMasterCommits;
+  private String branch;
 
   public MoarModule(File dir) {
     this.dir = dir;
@@ -150,5 +151,13 @@ public class MoarModule {
   @Override
   public String toString() {
     return dir.toString();
+  }
+
+  public String getBranch() {
+    if (branch == null) {
+      ExecuteResult result = swallow(() -> exec("git rev-parse --abbrev-ref HEAD", dir));
+      branch = result == null ? "" : result.getOutput().strip();
+    }
+    return branch;
   }
 }

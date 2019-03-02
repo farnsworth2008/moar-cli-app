@@ -1,25 +1,10 @@
 {
   "name": "moar-cli",
   "bin": {
-    "moar-add-fork": "bin/moar-add-fork",
-    "moar-clone": "bin/moar-clone",
-    "moar-clone-modules": "bin/moar-clone-modules",
-    "moar-commit": "bin/moar-commit",
-    "moar-detail": "bin/moar-detail",
-    "moar-each": "bin/moar-each",
-    "moar-init": "bin/moar-init",
-    "moar-init-clone": "bin/moar-init-clone",
-    "moar-init-update": "bin/moar-init-update",
-    "moar-json": "bin/moar-json",
-    "moar-pull": "bin/moar-pull",
-    "moar-push": "bin/moar-push",
-    "moar-push-master": "bin/moar-push-master",
-    "moar-push-origin": "bin/moar-push-origin",
-    "moar-cli-j-main.fat.jar": "bin/moar-cli-j-main.fat.jar",
-    "moar-status": "bin/moar-status",
-    "moar-update": "bin/moar-update"
+    "moar": "bin/moar",
+    "moar-cli-j-main.fat.jar": "bin/moar-cli-j-main.fat.jar"
   },
-  "version": "1.1.9",
+  "version": "1.2.1",
   "description": "Stuff to make Java sweet!",
   "main": "moar-json.js",
   "scripts": {
@@ -37,15 +22,15 @@
   },
   "homepage": "https://github.com/moar-stuff/moar-cli-app#README",
   "dependencies": {
-    "@babel/polyfill": "^7.2.5"
+    "@babel/polyfill": "^7.2.5",
+    "babel-preset-env": "^1.7.0",
+    "babel-register": "^6.26.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.3.3",
     "@babel/plugin-transform-arrow-functions": "^7.2.0",
     "@babel/preset-env": "^7.3.1",
-    "babel-preset-env": "^1.7.0",
-    "babel-register": "^6.26.0",
     "really-relaxed-json": "^0.2.24"
   }
 }
