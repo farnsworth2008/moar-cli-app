@@ -5,9 +5,13 @@ import static java.lang.Math.max;
 import static java.lang.String.format;
 import static java.lang.ThreadLocal.withInitial;
 import static moar.ansi.Ansi.BLUE;
+import static moar.ansi.Ansi.BLUE_UNDERLINED;
 import static moar.ansi.Ansi.GREEN;
+import static moar.ansi.Ansi.GREEN_UNDERLINED;
 import static moar.ansi.Ansi.PURPLE;
+import static moar.ansi.Ansi.PURPLE_UNDERLINED;
 import static moar.ansi.Ansi.RED;
+import static moar.ansi.Ansi.RED_UNDERLINED;
 import static moar.ansi.Ansi.blue;
 import static moar.ansi.Ansi.cyan;
 import static moar.ansi.Ansi.green;
@@ -126,26 +130,71 @@ public abstract class BaseStatusCommand
     return getFormattedLine(FALSE, 0).length();
   }
 
-  private void outputDetail() {
-    MoarModule module = this.module.get();
-    if (outputDetailLines(BLUE, module.getUncommitedFiles())) {
-      outputShortStat(BLUE, "git diff --shortstat HEAD");
-    }
-    module.getUpstreamBranch();
+  private void outputAheadDetail(String branch, MoarModule module) {
+    out.print("     ");
+    var command = format("%s..", branch);
+    out.println(GREEN_UNDERLINED.apply(command));
     if (outputDetailLines(GREEN, module.getAheadCommits())) {
-      outputShortStat(GREEN, "git diff --shortstat %s..");
+      outputShortStat(GREEN, command);
     }
-    if (outputDetailLines(RED, module.getBehindCommits())) {
-      outputShortStat(RED, "git diff --shortstat ..%s");
-    }
+  }
+
+  private void outputAheadOriginDetail(String branch, MoarModule module) {
+    out.print("     ");
+    var command = format("origin/develop..%s", branch);
+    out.println(GREEN_UNDERLINED.apply(command));
     if (outputDetailLines(GREEN, module.getAheadOriginCommits())) {
-      outputShortStat(GREEN, "git diff --shortstat origin/develop..%s");
+      outputShortStat(GREEN, command);
     }
-    if (outputDetailLines(RED, module.getBehindOriginCommits())) {
-      outputShortStat(RED, "git diff --shortstat %s..origin/develop");
+  }
+
+  private void outputBehindDetail(String branch, MoarModule module) {
+    out.print("     ");
+    var command = format("..%s", branch);
+    out.println(RED_UNDERLINED.apply(command));
+    if (outputDetailLines(RED, module.getBehindCommits())) {
+      outputShortStat(RED, command);
     }
+  }
+
+  private void outputBehindMasterDetail(String branch, MoarModule module) {
+    out.print("     ");
+    var command = format("origin/develop..origin/master", branch);
+    out.println(PURPLE_UNDERLINED.apply(command));
     if (outputDetailLines(PURPLE, module.getBehindMasterCommits())) {
-      outputShortStat(PURPLE, "git diff --shortstat origin/develop..origin/master");
+      outputShortStat(PURPLE, command);
+    }
+  }
+
+  private void outputBehindOriginDetail(String branch, MoarModule module) {
+    out.print("     ");
+    var command = format("%s..origin/develop", branch);
+    out.println(RED_UNDERLINED.apply(command));
+    if (outputDetailLines(RED, module.getBehindOriginCommits())) {
+      outputShortStat(RED, command);
+    }
+  }
+
+  private void outputDetail() {
+    String branch = module.get().getUpstreamBranch();
+    MoarModule module = this.module.get();
+    if (module.getUncommitedCount() > 0) {
+      outputUncommitedDetail(module);
+    }
+    if (module.getAheadCount() > 0) {
+      outputAheadDetail(branch, module);
+    }
+    if (module.getBehindCount() > 0) {
+      outputBehindDetail(branch, module);
+    }
+    if (module.getAheadOriginCount() > 0) {
+      outputAheadOriginDetail(branch, module);
+    }
+    if (module.getBehindOriginCount() > 0) {
+      outputBehindOriginDetail(branch, module);
+    }
+    if (module.getBehindMasterCount() > 0) {
+      outputBehindMasterDetail(branch, module);
     }
     out.println();
   }
@@ -184,10 +233,18 @@ public abstract class BaseStatusCommand
   private void outputShortStat(Ansi color, String command) {
     var pad = "       === ";
     MoarModule module = this.module.get();
-    String branch = module.getUpstreamBranch();
-    String output = module.execCommand(format(command, branch)).get().getOutput();
+    String output = module.execCommand("git diff --shortstat " + command).get().getOutput();
     var summary = output.strip().replaceAll("( changed| insertions| deletions)", "");
     out.println(color.apply(pad + summary));
+  }
+
+  private void outputUncommitedDetail(MoarModule module) {
+    out.print("     ");
+    var command = "..HEAD";
+    out.println(BLUE_UNDERLINED.apply(command));
+    if (outputDetailLines(BLUE, module.getUncommitedFiles())) {
+      outputShortStat(BLUE, "HEAD");
+    }
   }
 
   private void processModule() {

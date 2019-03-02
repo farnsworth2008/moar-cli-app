@@ -5,7 +5,7 @@ import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.lang.System.getProperty;
 import static java.util.Collections.sort;
-import static moar.sugar.MoarStringUtil.fileContentsAsString;
+import static moar.sugar.MoarStringUtil.readStringFromFile;
 import static moar.sugar.Sugar.nonNull;
 import static moar.sugar.Sugar.require;
 import java.io.File;
@@ -32,7 +32,7 @@ public abstract class BaseCommand {
     //@formatter:off
     Class[] clzList = {
       AddForkCommand.class,
-      CloneModulesCommand.class,
+      InitModulesCommand.class,
       DetailCommand.class,
       EachCommand.class,
       HelpCommand.class,
@@ -87,7 +87,7 @@ public abstract class BaseCommand {
   final String getIgnoreRegEx() {
     var workspace = getWorkspaceDir();
     File ignoreFile = new File(workspace, ".ignore");
-    String ignore = nonNull(fileContentsAsString(ignoreFile).strip(), "^$");
+    String ignore = nonNull(readStringFromFile(ignoreFile).strip(), "^$");
     return ignore;
   }
 

@@ -101,6 +101,14 @@ public class MoarModule {
     return behindOriginCommits.size();
   }
 
+  public String getBranch() {
+    if (branch == null) {
+      ExecuteResult result = swallow(() -> exec("git rev-parse --abbrev-ref HEAD", dir));
+      branch = result == null ? "" : result.getOutput().strip();
+    }
+    return branch;
+  }
+
   public File getDir() {
     return dir;
   }
@@ -151,13 +159,5 @@ public class MoarModule {
   @Override
   public String toString() {
     return dir.toString();
-  }
-
-  public String getBranch() {
-    if (branch == null) {
-      ExecuteResult result = swallow(() -> exec("git rev-parse --abbrev-ref HEAD", dir));
-      branch = result == null ? "" : result.getOutput().strip();
-    }
-    return branch;
   }
 }

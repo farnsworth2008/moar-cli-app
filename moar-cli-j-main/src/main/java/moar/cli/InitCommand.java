@@ -6,7 +6,7 @@ import moar.ansi.StatusLine;
 
 public class InitCommand
     extends
-    CloneModulesCommand {
+    InitModulesCommand {
 
   @Override
   void doModuleCommand(String[] args) {
@@ -29,6 +29,11 @@ public class InitCommand
         progress.clear();
       }
     }
+  }
+
+  @Override
+  boolean includeInCommandNames() {
+    return true;
   }
 
 }

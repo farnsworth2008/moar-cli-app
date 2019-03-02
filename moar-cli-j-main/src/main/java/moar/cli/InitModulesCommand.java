@@ -3,6 +3,8 @@ package moar.cli;
 import static java.lang.String.format;
 import static java.nio.file.Files.createSymbolicLink;
 import static java.nio.file.Files.isSymbolicLink;
+import static moar.sugar.MoarStringUtil.readStringFromFile;
+import static moar.sugar.MoarStringUtil.writeStringToFile;
 import static moar.sugar.Sugar.exec;
 import static moar.sugar.Sugar.require;
 import static moar.sugar.thread.MoarThreadSugar.$;
@@ -10,9 +12,8 @@ import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
 import moar.ansi.StatusLine;
 import moar.sugar.MoarException;
-import moar.sugar.MoarStringUtil;
 
-public class CloneModulesCommand
+public class InitModulesCommand
     extends
     ModuleCommand {
 
@@ -37,15 +38,19 @@ public class CloneModulesCommand
           }
         }
         var refModuleCloneDir = new File(workspaceDir, moarModuleName);
+        File initFile = new File(moarModulesDir, "init-" + moarModuleName);
         if (!refModuleCloneDir.exists()) {
-          var moarModuleUrl = MoarStringUtil.fileContentsAsString(new File(moarModulesDir, moarModule));
+          var moarModuleUrl = readStringFromFile(new File(moarModulesDir, moarModule));
+          var init = readStringFromFile(initFile);
           exec(format("git clone --recurse-submodules %s", moarModuleUrl), workspaceDir);
-          exec("git checkout -b develop origin/develop", refModuleCloneDir);
+          exec(format("git reset --hard %s", init), refModuleCloneDir);
           if (new File(refModuleCloneDir, "moar-setup.sh").canExecute()) {
             exec("moar-setup.sh", refModuleCloneDir);
           }
         }
         require(() -> createSymbolicLink(moduleRefFile.toPath(), refModuleCloneDir.toPath()));
+        var init = exec("git rev-parse HEAD", refModuleCloneDir).getOutput();
+        writeStringToFile(initFile, init);
         progress.set(() -> (float) completed.incrementAndGet() / count);
       });
     }
@@ -56,6 +61,11 @@ public class CloneModulesCommand
   @Override
   void doModuleCommand(String[] args) {
     doCloneModules();
+  }
+
+  @Override
+  boolean includeInCommandNames() {
+    return false;
   }
 
 }

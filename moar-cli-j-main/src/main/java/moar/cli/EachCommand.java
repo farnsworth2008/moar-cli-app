@@ -66,7 +66,7 @@ public class EachCommand
   void doRun(String[] args) {
     require(() -> {
       var filter = "";
-      var command = "";
+      var command = "git remote update";
       var argNum = 0;
       for (int i = 2; i < args.length; i++) {
         String arg = args[i];

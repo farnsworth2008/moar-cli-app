@@ -1,7 +1,7 @@
 package moar.cli;
 
 import static java.lang.String.format;
-import static moar.sugar.MoarStringUtil.fileContentsAsString;
+import static moar.sugar.MoarStringUtil.readStringFromFile;
 import static moar.sugar.MoarStringUtil.writeStringToFile;
 import static moar.sugar.Sugar.exec;
 import static moar.sugar.Sugar.nonNull;
@@ -27,7 +27,7 @@ public class AddForkCommand
     }
     File forkConfigFile = new File(getWorkspaceDir(), ".fork");
     if (fork.isEmpty()) {
-      fork = nonNull(fileContentsAsString(forkConfigFile), "");
+      fork = nonNull(readStringFromFile(forkConfigFile), "");
     }
     if (fork.isEmpty()) {
       throw new MoarException("You must supply the GitHub account name for the fork.");
