@@ -16,9 +16,12 @@ public abstract class InitBaseCommand
     ModuleCommand {
 
   void doCloneModules(File moarModulesDir, boolean nest) {
-    File workspaceDir = getWorkspaceDir();
-    File moduleDir = getCurrentModuleDir();
-    String[] moarModuleList = moarModulesDir.list((dir, name) -> name.startsWith("git-"));
+    if (!moarModulesDir.exists()) {
+      moarModulesDir.mkdir();
+    }
+    var workspaceDir = getWorkspaceDir();
+    var moduleDir = getCurrentModuleDir();
+    var moarModuleList = moarModulesDir.list((dir, name) -> name.startsWith("git-"));
     var progress = new StatusLine(out, "Cloning moar modules");
     var count = moarModuleList.length;
     var completed = new AtomicInteger();
@@ -86,24 +89,44 @@ public abstract class InitBaseCommand
     }
     File moarModulesDir = new File(getCurrentModuleDir(), "moar-modules");
     if (!url.isEmpty()) {
-      var refModuleName = url.replaceAll("^.*/", "").replaceAll("\\.*", "");
+      var refModuleName = url.replaceAll("^.*/", "").replaceAll("\\..*", "");
       File refFile = new File(moarModulesDir, "git-" + refModuleName);
       writeStringToFile(refFile, url);
     }
     doCloneModules(moarModulesDir, nested);
+
     var hasMoarSugar = new File(dir, "moar-sugar").exists();
-    var hasGradleBuild = new File(dir, "build.gradle").exists();
     var hasGradleWrapper = new File(dir, "gradlew").exists();
-    if (hasGradleBuild) {
-      if (hasMoarSugar && !hasGradleWrapper) {
-        exec("ln -s moar-sugar/gradle gradle && ln -s moar-sugar/gradlew gradlew", dir);
-        hasGradleWrapper = true;
+    var hasBuildGradle = new File(dir, "build.gradle").exists();
+
+    if (hasMoarSugar && !hasGradleWrapper) {
+      String moduleName = getCurrentModuleDir().getName();
+      String mkdirMainCmd = "mkdir -p %s-main/src/main/java;";
+      String settingsGradleCmd = "cat moar-sugar/template-settings.gradle | sed 's/MODULE/%s/g' > settings.gradle;";
+      String buildMainGradleCmd = "cp moar-sugar/template-main-build.gradle %s-main/build.gradle;";
+      String buildGradleCmd = "cp moar-sugar/template-build.gradle build.gradle;";
+      String buildMainJavaCmd = "cp moar-sugar/template-Main.java %s-main/src/main/java/Main.java;";
+      StringBuilder builder = new StringBuilder();
+      if (!hasBuildGradle) {
+        builder.append(buildGradleCmd);
+        builder.append(format(settingsGradleCmd, moduleName));
       }
-      if (hasGradleWrapper) {
-        var progress = new StatusLine(out, "./gradlew cleanEclipse eclipse");
-        exec("./gradlew cleanEclipse eclipse", dir);
-        progress.clear();
+      if (!new File(dir.getAbsolutePath() + format("/%s-main/src/main/java", moduleName)).exists()) {
+        builder.append(format(mkdirMainCmd, moduleName));
+        builder.append(format(buildMainGradleCmd, moduleName));
+        builder.append(format(buildMainJavaCmd, moduleName));
       }
+      builder.append("cp moar-sugar/template.gitignore .gitignore;");
+      builder.append("cp moar-sugar/template-build.sh build.sh;");
+      builder.append("ln -s moar-sugar/gradle gradle;");
+      builder.append("ln -s moar-sugar/gradlew gradlew");
+      exec(builder.toString(), dir);
+      hasGradleWrapper = true;
+    }
+    if (hasGradleWrapper) {
+      var progress = new StatusLine(out, "./gradlew cleanEclipse eclipse");
+      exec("./gradlew cleanEclipse eclipse", dir);
+      progress.clear();
     }
   }
 

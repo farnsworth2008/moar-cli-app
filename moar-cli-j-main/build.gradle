@@ -14,7 +14,7 @@ task fatJar(type: Jar) {
   manifest {
     attributes(
       "Main-Class": "Main",
-      "Specification-Title": "moar-cli-j",
+      "Specification-Title": project.name,
       "Specification-Version": System.getProperty("build_version", "unknown"),
     )
   }

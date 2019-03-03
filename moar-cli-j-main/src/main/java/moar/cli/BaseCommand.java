@@ -32,6 +32,7 @@ public abstract class BaseCommand {
     //@formatter:off
     Class[] clzList = {
       AddForkCommand.class,
+      AddModuleCommand.class,
       DetailCommand.class,
       EachCommand.class,
       HelpCommand.class,
