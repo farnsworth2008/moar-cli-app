@@ -69,9 +69,6 @@ public abstract class InitBaseCommand
 
   protected void doInitCommand(String[] args, boolean nested) {
     var dir = getCurrentModuleDir();
-    if (new File(dir, "moar-setup.sh").exists()) {
-      exec("moar-setup.sh", dir);
-    }
     var url = "";
     if (args != null) {
       var argNum = 0;
@@ -135,6 +132,9 @@ public abstract class InitBaseCommand
       var progress = new StatusLine(out, "./gradlew cleanEclipse eclipse");
       exec("./gradlew cleanEclipse eclipse", dir);
       progress.clear();
+    }
+    if (new File(dir, "moar-setup.sh").exists()) {
+      exec("moar-setup.sh", dir);
     }
   }
 
