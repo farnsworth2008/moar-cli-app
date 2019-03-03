@@ -1,2 +1,2 @@
+include "moar-cli-app-main"
 include "moar-sugar"
-include "moar-cli-j-main"
