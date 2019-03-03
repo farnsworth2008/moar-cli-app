@@ -99,6 +99,7 @@ public abstract class InitBaseCommand
     var hasGradleWrapper = new File(dir, "gradlew").exists();
     var hasBuildGradle = new File(dir, "build.gradle").exists();
     var hasGitIgnore = new File(dir, ".gitignore").exists();
+    var hasLicense = new File(dir, "LICENSE").exists();
 
     if (hasMoarSugar && !hasGradleWrapper) {
       String moduleName = getCurrentModuleDir().getName();
@@ -120,6 +121,9 @@ public abstract class InitBaseCommand
         }
         if (!hasGitIgnore) {
           builder.append("cp moar-sugar/template.gitignore .gitignore;");
+        }
+        if (!hasLicense) {
+          builder.append("cp moar-sugar/LICENSE LICENSE;");
         }
       }
       builder.append("ln -s moar-sugar/gradle gradle;");
