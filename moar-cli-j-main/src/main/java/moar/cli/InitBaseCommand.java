@@ -98,6 +98,7 @@ public abstract class InitBaseCommand
     var hasMoarSugar = new File(dir, "moar-sugar").exists();
     var hasGradleWrapper = new File(dir, "gradlew").exists();
     var hasBuildGradle = new File(dir, "build.gradle").exists();
+    var hasGitIgnore = new File(dir, ".gitignore").exists();
 
     if (hasMoarSugar && !hasGradleWrapper) {
       String moduleName = getCurrentModuleDir().getName();
@@ -108,16 +109,19 @@ public abstract class InitBaseCommand
       String buildMainJavaCmd = "cp moar-sugar/template-Main.java %s-main/src/main/java/Main.java;";
       StringBuilder builder = new StringBuilder();
       if (!hasBuildGradle) {
+        builder.append("cp moar-sugar/template-build.sh build.sh;");
+        builder.append("cp moar-sugar/template-run.sh run.sh;");
         builder.append(buildGradleCmd);
         builder.append(format(settingsGradleCmd, moduleName));
+        if (!new File(dir.getAbsolutePath() + format("/%s-main/src/main/java", moduleName)).exists()) {
+          builder.append(format(mkdirMainCmd, moduleName));
+          builder.append(format(buildMainGradleCmd, moduleName));
+          builder.append(format(buildMainJavaCmd, moduleName));
+        }
+        if (!hasGitIgnore) {
+          builder.append("cp moar-sugar/template.gitignore .gitignore;");
+        }
       }
-      if (!new File(dir.getAbsolutePath() + format("/%s-main/src/main/java", moduleName)).exists()) {
-        builder.append(format(mkdirMainCmd, moduleName));
-        builder.append(format(buildMainGradleCmd, moduleName));
-        builder.append(format(buildMainJavaCmd, moduleName));
-      }
-      builder.append("cp moar-sugar/template.gitignore .gitignore;");
-      builder.append("cp moar-sugar/template-build.sh build.sh;");
       builder.append("ln -s moar-sugar/gradle gradle;");
       builder.append("ln -s moar-sugar/gradlew gradlew");
       exec(builder.toString(), dir);
