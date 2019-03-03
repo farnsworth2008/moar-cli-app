@@ -1,12 +1,10 @@
 package moar.cli;
 
 import static java.lang.String.format;
-import static java.nio.file.Files.createSymbolicLink;
 import static java.nio.file.Files.isSymbolicLink;
 import static moar.sugar.MoarStringUtil.readStringFromFile;
 import static moar.sugar.MoarStringUtil.writeStringToFile;
 import static moar.sugar.Sugar.exec;
-import static moar.sugar.Sugar.require;
 import static moar.sugar.thread.MoarThreadSugar.$;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -54,7 +52,10 @@ public abstract class InitBaseCommand
           exec("git branch -D init-" + moduleDir.getName(), refModuleCloneDir);
           exec("git branch -m init-" + moduleDir.getName(), refModuleCloneDir);
         } else {
-          require(() -> createSymbolicLink(moduleRefFile.toPath(), refModuleCloneDir.toPath()));
+          var currentDir = getCurrentModuleDir();
+          var refModuleName = refModuleCloneDir.getName();
+          var refModulePath = refModuleCloneDir.getAbsolutePath();
+          exec(format("ln -s %s %s", refModulePath, refModuleName), currentDir);
           init = exec("git rev-parse HEAD", refModuleCloneDir).getOutput();
           writeStringToFile(initFile, init);
           progress.set(() -> (float) completed.incrementAndGet() / count);
