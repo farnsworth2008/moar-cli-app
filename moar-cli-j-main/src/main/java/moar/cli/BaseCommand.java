@@ -35,7 +35,7 @@ public abstract class BaseCommand {
       DetailCommand.class,
       EachCommand.class,
       HelpCommand.class,
-      RequireCommand.class,
+      NestCommand.class,
       InitCommand.class,
       StatusCommand.class,
       VersionCommand.class,

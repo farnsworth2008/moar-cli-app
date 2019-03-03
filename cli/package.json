@@ -4,8 +4,8 @@
     "moar": "bin/moar",
     "moar-cli-j-main.fat.jar": "bin/moar-cli-j-main.fat.jar"
   },
-  "version": "1.2.3",
-  "description": "Stuff to make Java sweet!",
+  "version": "1.2.4",
+  "description": "Moar Module Managment for Git",
   "main": "moar-json.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

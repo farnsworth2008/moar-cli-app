@@ -1,6 +1,6 @@
 package moar.cli;
 
-public class RequireCommand
+public class NestCommand
     extends
     InitBaseCommand {
 

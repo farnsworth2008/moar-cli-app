@@ -4,6 +4,7 @@ import static java.lang.String.format;
 import static moar.sugar.MoarStringUtil.readStringFromFile;
 import static moar.sugar.MoarStringUtil.writeStringToFile;
 import static moar.sugar.Sugar.exec;
+import static moar.sugar.Sugar.nonNull;
 import static moar.sugar.thread.MoarThreadSugar.$;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -14,7 +15,7 @@ public abstract class InitBaseCommand
     extends
     ModuleCommand {
 
-  void doCloneModules(File moarModulesDir, boolean require) {
+  void doCloneModules(File moarModulesDir, boolean nest) {
     File workspaceDir = getWorkspaceDir();
     File moduleDir = getCurrentModuleDir();
     String[] moarModuleList = moarModulesDir.list((dir, name) -> name.startsWith("git-"));
@@ -28,17 +29,20 @@ public abstract class InitBaseCommand
         File moduleRefFile = new File(moduleDir, moarModuleName);
         if (moduleRefFile.exists()) {
           exec(format("rm -rf %s", moarModuleName), moduleDir);
+          if (moduleRefFile.exists()) {
+            throw new MoarException("Unable to remove module");
+          }
         }
         File initFile = new File(moarModulesDir, "init-" + moarModuleName);
-        var init = readStringFromFile(initFile);
-        var moarModuleUrl = readStringFromFile(new File(moarModulesDir, moarModule));
+        var moarModuleUrl = readStringFromFile(new File(moarModulesDir, moarModule)).strip();
+        var init = nonNull(readStringFromFile(initFile), "").strip();
         StringBuilder builder = new StringBuilder();
         builder.append("git clone --recurse-submodules %s;");
         builder.append("cd %s;");
         builder.append("git reset --hard %s");
         String command = format(builder.toString(), moarModuleUrl, moarModuleName, init);
-        if (require) {
-          /* If we "require", clone into sub-dir. */
+        if (nest) {
+          /* If we "nest", clone into sub-dir for a nested structure. */
           exec(command, moduleDir);
         } else {
           /* Otherwise we setup a symlink version */
@@ -60,7 +64,7 @@ public abstract class InitBaseCommand
     progress.clear();
   }
 
-  protected void doInitCommand(String[] args, boolean require) {
+  protected void doInitCommand(String[] args, boolean nested) {
     var dir = getCurrentModuleDir();
     if (new File(dir, "moar-setup.sh").exists()) {
       exec("moar-setup.sh", dir);
@@ -86,7 +90,7 @@ public abstract class InitBaseCommand
       File refFile = new File(moarModulesDir, "git-" + refModuleName);
       writeStringToFile(refFile, url);
     }
-    doCloneModules(moarModulesDir, require);
+    doCloneModules(moarModulesDir, nested);
     var hasMoarSugar = new File(dir, "moar-sugar").exists();
     var hasGradleBuild = new File(dir, "build.gradle").exists();
     var hasGradleWrapper = new File(dir, "gradlew").exists();

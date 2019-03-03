@@ -21,6 +21,8 @@ public class Main {
         }
       }
       out.println(format("Command \"%s\" %s", cyan(args[1]), red("not found!")));
+      out.println();
+      args[1] = "--help";
       new HelpCommand().run(async, out, args);
     }
   }
