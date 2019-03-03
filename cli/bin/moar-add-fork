@@ -1,2 +1,0 @@
-git remote add fork git@github.com:$1/`printf '%s\n' "${PWD##*/}"`
-git remote update
