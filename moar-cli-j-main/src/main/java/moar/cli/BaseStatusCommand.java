@@ -4,15 +4,12 @@ import static java.lang.Boolean.FALSE;
 import static java.lang.Math.max;
 import static java.lang.String.format;
 import static java.lang.ThreadLocal.withInitial;
-import static moar.ansi.Ansi.BLUE;
-import static moar.ansi.Ansi.BLUE_UNDERLINED;
 import static moar.ansi.Ansi.GREEN;
 import static moar.ansi.Ansi.GREEN_UNDERLINED;
 import static moar.ansi.Ansi.PURPLE;
 import static moar.ansi.Ansi.PURPLE_UNDERLINED;
 import static moar.ansi.Ansi.RED;
 import static moar.ansi.Ansi.RED_UNDERLINED;
-import static moar.ansi.Ansi.blue;
 import static moar.ansi.Ansi.cyan;
 import static moar.ansi.Ansi.green;
 import static moar.ansi.Ansi.purple;
@@ -106,7 +103,7 @@ public abstract class BaseStatusCommand
       b.append(" ");
 
       if (uncommitedCount.get() != 0) {
-        b.append(blue(uncommitedCount.get()));
+        b.append(purple(uncommitedCount.get()));
         b.append(" ");
       }
       if (aheadCount.get() != 0 || behindCount.get() != 0) {
@@ -241,9 +238,9 @@ public abstract class BaseStatusCommand
   private void outUncommitedDetail(MoarModule module) {
     out.print("     ");
     var command = "..HEAD";
-    out.println(BLUE_UNDERLINED.apply(command));
-    if (outDetailLines(BLUE, module.getUncommitedFiles())) {
-      outShortStat(BLUE, "HEAD");
+    out.println(PURPLE_UNDERLINED.apply(command));
+    if (outDetailLines(PURPLE, module.getUncommitedFiles())) {
+      outShortStat(PURPLE, "HEAD");
     }
   }
 

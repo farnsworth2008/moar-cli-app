@@ -20,10 +20,11 @@ public class AddForkCommand
     for (int i = 2; i < args.length; i++) {
       String arg = args[i];
       argNum++;
-      if (argNum != 1) {
-        throw new MoarException("Expected only one argument");
+      if (argNum == 1) {
+        fork = arg;
+      } else {
+        throw new MoarException("Unexpected Arg");
       }
-      fork = arg;
     }
     File forkConfigFile = new File(getWorkspaceDir(), ".fork");
     if (fork.isEmpty()) {

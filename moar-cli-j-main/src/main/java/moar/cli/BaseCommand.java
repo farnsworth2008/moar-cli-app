@@ -32,16 +32,16 @@ public abstract class BaseCommand {
     //@formatter:off
     Class[] clzList = {
       AddForkCommand.class,
-      InitModulesCommand.class,
       DetailCommand.class,
       EachCommand.class,
       HelpCommand.class,
+      RequireCommand.class,
       InitCommand.class,
       StatusCommand.class,
       VersionCommand.class,
     };
     return clzList;
-  //@formatter:on
+    //@formatter:on
   }
 
   @SuppressWarnings("rawtypes")

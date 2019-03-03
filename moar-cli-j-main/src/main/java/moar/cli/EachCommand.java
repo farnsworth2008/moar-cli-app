@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Vector;
 import moar.ansi.StatusLine;
 import moar.sugar.ExecuteResult;
+import moar.sugar.MoarException;
 import moar.sugar.SafeResult;
 
 public class EachCommand
@@ -68,14 +69,15 @@ public class EachCommand
       var filter = "";
       var command = "git remote update";
       var argNum = 0;
-      for (int i = 2; i < args.length; i++) {
+      for (var i = 2; i < args.length; i++) {
         String arg = args[i];
-        argNum++;
+        ++argNum;
         if (argNum == 1) {
           filter = arg;
-        }
-        if (argNum == 2) {
+        } else if (argNum == 2) {
           command = arg;
+        } else {
+          throw new MoarException("Unexpected Arg");
         }
       }
       var defaultFilter = ".*";

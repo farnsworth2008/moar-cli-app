@@ -11,13 +11,14 @@ public class StatusCommand
   void doRun(String[] args) {
     var filter = "";
     var argNum = 0;
-    for (int i = 2; i < args.length; i++) {
+    for (var i = 2; i < args.length; i++) {
       String arg = args[i];
-      argNum++;
-      if (argNum != 1) {
-        throw new MoarException("Expected only one argument");
+      ++argNum;
+      if (argNum == 1) {
+        filter = arg;
+      } else {
+        throw new MoarException("Unexpected Arg");
       }
-      filter = arg;
     }
     var defaultFilter = ".*";
     if (filter.isEmpty()) {

@@ -1,12 +1,12 @@
 package moar.cli;
 
-public class InitCommand
+public class RequireCommand
     extends
     InitBaseCommand {
 
   @Override
   void doModuleCommand(String[] args) {
-    doInitCommand(null, false);
+    super.doInitCommand(null, true);
   }
 
 }
