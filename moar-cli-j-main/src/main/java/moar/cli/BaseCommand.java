@@ -70,17 +70,14 @@ public abstract class BaseCommand {
   abstract void doRun(String[] args);
 
   final File getCurrentModuleDir() {
-    File workspace = getWorkspaceDir();
     var dir = new File(getProperty("user.dir"));
-    while (dir.getParentFile() != null) {
-      File parentFile = dir.getParentFile();
-      if (parentFile.equals(workspace)) {
-        if (new File(dir, ".git").isDirectory()) {
-          return dir;
-        }
+    do {
+      if (new File(dir, ".git").isDirectory()) {
+        return dir;
       }
+      File parentFile = dir.getParentFile();
       dir = parentFile;
-    }
+    } while (dir.getParentFile() != null);
     return null;
   }
 
