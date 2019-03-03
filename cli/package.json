@@ -4,7 +4,7 @@
     "moar": "bin/moar",
     "moar-cli-j-main.fat.jar": "bin/moar-cli-j-main.fat.jar"
   },
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Stuff to make Java sweet!",
   "main": "moar-json.js",
   "scripts": {
