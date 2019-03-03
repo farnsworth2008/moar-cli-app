@@ -38,6 +38,7 @@ public abstract class BaseCommand {
       EclipseCommand.class,
       HelpCommand.class,
       NestCommand.class,
+      PushCommand.class,
       InitCommand.class,
       StatusCommand.class,
       VersionCommand.class,
