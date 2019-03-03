@@ -92,6 +92,7 @@ public abstract class InitBaseCommand
     }
     doCloneModules(moarModulesDir, nested);
 
+    var status = new StatusLine(out, "setup");
     var hasMoarSugar = new File(dir, "moar-sugar").exists();
     var hasGradleWrapper = new File(dir, "gradlew").exists();
     var hasBuildGradle = new File(dir, "build.gradle").exists();
@@ -129,13 +130,16 @@ public abstract class InitBaseCommand
       hasGradleWrapper = true;
     }
     if (hasGradleWrapper) {
-      var progress = new StatusLine(out, "./gradlew cleanEclipse eclipse");
-      exec("./gradlew cleanEclipse eclipse", dir);
-      progress.clear();
+      String gradleCommand = "./gradlew cleanEclipse eclipse";
+      status.set(gradleCommand);
+      exec(gradleCommand, dir);
     }
     if (new File(dir, "moar-setup.sh").exists()) {
-      exec("moar-setup.sh", dir);
+      String moarSetupCommand = "./moar-setup.sh";
+      status.set(moarSetupCommand);
+      exec(moarSetupCommand, dir);
     }
+    status.clear();
   }
 
   @Override

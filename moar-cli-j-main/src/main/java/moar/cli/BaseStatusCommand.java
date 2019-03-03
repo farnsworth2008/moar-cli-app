@@ -10,7 +10,7 @@ import static moar.ansi.Ansi.PURPLE;
 import static moar.ansi.Ansi.PURPLE_UNDERLINED;
 import static moar.ansi.Ansi.RED;
 import static moar.ansi.Ansi.RED_UNDERLINED;
-import static moar.ansi.Ansi.cyan;
+import static moar.ansi.Ansi.cyanBold;
 import static moar.ansi.Ansi.green;
 import static moar.ansi.Ansi.purple;
 import static moar.ansi.Ansi.red;
@@ -96,7 +96,7 @@ public abstract class BaseStatusCommand
     try {
       var b = new StringBuilder();
       if (module.get().getDir().equals(currentModuleDir.get())) {
-        b.append(cyan(moduleName.get()));
+        b.append(cyanBold(moduleName.get()));
       } else {
         b.append(moduleName.get());
       }

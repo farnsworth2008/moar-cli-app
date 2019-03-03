@@ -1,7 +1,7 @@
 package moar.cli;
 
 import static java.lang.String.format;
-import static moar.ansi.Ansi.cyan;
+import static moar.ansi.Ansi.cyanBold;
 import static moar.sugar.Sugar.require;
 import static moar.sugar.thread.MoarThreadSugar.$;
 import java.util.HashMap;
@@ -55,7 +55,7 @@ public class EachCommand
       if (filterMatches && !ignoreMatches) {
         String output = map.get(module.getName());
         if (!output.strip().isEmpty()) {
-          out.println(cyan(module.getName()));
+          out.println(cyanBold(module.getName()));
           out.println(output);
           out.println();
         }

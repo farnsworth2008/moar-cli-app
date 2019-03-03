@@ -35,6 +35,7 @@ public abstract class BaseCommand {
       AddModuleCommand.class,
       DetailCommand.class,
       EachCommand.class,
+      EclipseCommand.class,
       HelpCommand.class,
       NestCommand.class,
       InitCommand.class,

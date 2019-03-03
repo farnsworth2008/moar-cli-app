@@ -1,9 +1,10 @@
 package moar.cli;
 
-import static moar.ansi.Ansi.cyan;
+import static moar.ansi.Ansi.cyanBold;
 import static moar.ansi.Ansi.green;
 import static moar.ansi.Ansi.purple;
 import static moar.ansi.Ansi.purpleBold;
+import static moar.ansi.Ansi.red;
 
 public class HelpCommand
     extends
@@ -17,11 +18,11 @@ public class HelpCommand
   @Override
   void doRun(String[] args) {
     out.print(purpleBold(args[0]) + " [");
-    out.print(green("--version"));
+    out.print(red("--version"));
     out.print("] [");
-    out.print(green("--help"));
+    out.print(red("--help"));
     out.print("] ");
-    out.print(cyan("<command> "));
+    out.print(cyanBold("<command> "));
     out.print("[");
     out.print(purple("<args>"));
     out.print("]");
@@ -43,51 +44,57 @@ public class HelpCommand
     out.println();
     out.print(purpleBold(args[0]));
     out.print(" ");
-    out.print(cyan("add-module "));
+    out.print(cyanBold("add-module "));
     out.println(purple("<Git URL>"));
     out.println(green("     /* Add a moar-module reference. */"));
     out.println();
     out.print(purpleBold(args[0]));
     out.print(" ");
-    out.print(cyan("add-fork"));
+    out.print(cyanBold("add-fork"));
     out.print(" ");
     out.println(purple("<Git Hub Account>"));
     out.println(green("     /* Add a fork remote. */"));
     out.println();
     out.print(purpleBold(args[0]));
     out.print(" ");
-    out.print(cyan("detail"));
+    out.print(cyanBold("detail"));
     out.print(" ");
     out.println(purple("[<Module Filter RegEx>]"));
     out.println(green("     /* Shows detail status. */"));
     out.println();
     out.print(purpleBold(args[0]));
     out.print(" ");
-    out.print(cyan("each"));
+    out.print(cyanBold("each"));
     out.print(" ");
     out.println(purple("<Module Filter RegEx> <Bash Command>"));
-    out.println(green("     /* Run bash command in each matching module directory. */"));
+    out.println(green("     /* Run <Bash Command> in filtered module directories. */"));
     out.println();
     out.print(purpleBold(args[0]));
     out.print(" ");
-    out.println(cyan("help"));
+    out.println(cyanBold("eclipse"));
+    out.print(" ");
+    out.println(green("     /* Run './gradlew cleanEclipse eclipse'. */"));
+    out.println();
+    out.print(purpleBold(args[0]));
+    out.print(" ");
+    out.println(cyanBold("help"));
     out.println(green("     /* Shows this help. */"));
     out.println();
     out.print(purpleBold(args[0]));
     out.print(" ");
-    out.println(cyan("init"));
+    out.println(cyanBold("init"));
     out.println(green("     /* Initalize will clone referenced modules and setup */"));
     out.println(green("      * symbolic linking. */"));
     out.println();
     out.print(purpleBold(args[0]));
     out.print(" ");
-    out.println(cyan("nest"));
+    out.println(cyanBold("nest"));
     out.println(green("     /* Require will clone referenced modules in a \"nested\" */"));
     out.println(green("      * structure without symbolic linking. */"));
     out.println();
     out.print(purpleBold(args[0]));
     out.print(" ");
-    out.print(cyan("status"));
+    out.print(cyanBold("status"));
     out.print(" ");
     out.println(purple("[<Module Filter RegEx>]"));
     out.println(green("     /* Show status. */"));

@@ -1,7 +1,7 @@
 
 import static java.lang.String.format;
 import static java.lang.System.out;
-import static moar.ansi.Ansi.cyan;
+import static moar.ansi.Ansi.cyanBold;
 import static moar.ansi.Ansi.red;
 import static moar.cli.BaseCommand.getCommand;
 import static moar.cli.BaseCommand.getCommandClasses;
@@ -20,7 +20,7 @@ public class Main {
           return;
         }
       }
-      out.println(format("Command \"%s\" %s", cyan(args[1]), red("not found!")));
+      out.println(format("Command \"%s\" %s", cyanBold(args[1]), red("not found!")));
       out.println();
       args[1] = "--help";
       new HelpCommand().run(async, out, args);
