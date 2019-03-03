@@ -1,7 +1,6 @@
 package moar.cli;
 
 import static java.lang.String.format;
-import static java.nio.file.Files.isSymbolicLink;
 import static moar.sugar.MoarStringUtil.readStringFromFile;
 import static moar.sugar.MoarStringUtil.writeStringToFile;
 import static moar.sugar.Sugar.exec;
@@ -10,7 +9,6 @@ import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
 import moar.ansi.StatusLine;
 import moar.sugar.MoarException;
-import moar.sugar.MoarStringUtil;
 
 public abstract class InitBaseCommand
     extends
@@ -29,29 +27,25 @@ public abstract class InitBaseCommand
         var moarModuleName = moarModule.replaceAll("^git-", "");
         File moduleRefFile = new File(moduleDir, moarModuleName);
         if (moduleRefFile.exists()) {
-          if (isSymbolicLink(moduleRefFile.toPath())) {
-            moduleRefFile.delete();
-          } else {
-            throw new MoarException(format("%s exists", moarModuleName));
-          }
+          exec(format("rm -rf %s", moarModuleName), moduleDir);
         }
-        var refModuleCloneDir = new File(workspaceDir, moarModuleName);
         File initFile = new File(moarModulesDir, "init-" + moarModuleName);
         var init = readStringFromFile(initFile);
-        if (!refModuleCloneDir.exists()) {
-          var moarModuleUrl = readStringFromFile(new File(moarModulesDir, moarModule));
-          exec(format("git clone --recurse-submodules %s", moarModuleUrl), workspaceDir);
-          exec(format("git reset --hard %s", init), refModuleCloneDir);
-          if (new File(refModuleCloneDir, "moar-setup.sh").canExecute()) {
-            exec("moar-setup.sh", refModuleCloneDir);
-          }
-        }
+        var moarModuleUrl = readStringFromFile(new File(moarModulesDir, moarModule));
+        StringBuilder builder = new StringBuilder();
+        builder.append("git clone --recurse-submodules %s;");
+        builder.append("cd %s;");
+        builder.append("git reset --hard %s");
+        String command = format(builder.toString(), moarModuleUrl, moarModuleName, init);
         if (require) {
-          exec("git checkout -b moar-init", refModuleCloneDir);
-          exec(format("git reset --hard %s", init), refModuleCloneDir);
-          exec("git branch -D init-" + moduleDir.getName(), refModuleCloneDir);
-          exec("git branch -m init-" + moduleDir.getName(), refModuleCloneDir);
+          /* If we "require", clone into sub-dir. */
+          exec(command, moduleDir);
         } else {
+          /* Otherwise we setup a symlink version */
+          var refModuleCloneDir = new File(workspaceDir, moarModuleName);
+          if (!refModuleCloneDir.exists()) {
+            exec(command, workspaceDir);
+          }
           var currentDir = getCurrentModuleDir();
           var refModuleName = refModuleCloneDir.getName();
           var refModulePath = refModuleCloneDir.getAbsolutePath();
@@ -90,7 +84,7 @@ public abstract class InitBaseCommand
     if (!url.isEmpty()) {
       var refModuleName = url.replaceAll("^.*/", "").replaceAll("\\.*", "");
       File refFile = new File(moarModulesDir, "git-" + refModuleName);
-      MoarStringUtil.writeStringToFile(refFile, "");
+      writeStringToFile(refFile, url);
     }
     doCloneModules(moarModulesDir, require);
     var hasMoarSugar = new File(dir, "moar-sugar").exists();

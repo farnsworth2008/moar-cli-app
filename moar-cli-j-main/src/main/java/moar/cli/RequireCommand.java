@@ -6,7 +6,7 @@ public class RequireCommand
 
   @Override
   void doModuleCommand(String[] args) {
-    super.doInitCommand(null, true);
+    doInitCommand(null, true);
   }
 
 }
