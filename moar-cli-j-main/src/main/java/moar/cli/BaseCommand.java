@@ -84,7 +84,7 @@ public abstract class BaseCommand {
   final String getIgnoreRegEx() {
     var workspace = getWorkspaceDir();
     File ignoreFile = new File(workspace, ".ignore");
-    String ignore = nonNull(readStringFromFile(ignoreFile).strip(), "^$");
+    String ignore = nonNull(nonNull(readStringFromFile(ignoreFile), "").strip(), "^$");
     return ignore;
   }
 
