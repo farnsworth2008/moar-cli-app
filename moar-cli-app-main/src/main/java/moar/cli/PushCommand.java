@@ -10,6 +10,7 @@ public class PushCommand
     ModuleCommand {
 
   private void doCommand(StatusLine status, String command) {
+    status.set(command);
     exec(command, getCurrentModuleDir());
     status.completeOne();
   }
@@ -30,6 +31,7 @@ public class PushCommand
       }
     }
     status.setCount(futures.size());
+    $(futures);
     status.clear();
   }
 
