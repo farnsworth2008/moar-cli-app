@@ -64,23 +64,19 @@ public class EachCommand
   @Override
   void doRun(String[] args) {
     require(() -> {
-      var filter = "";
+      var filter = ".*";
       var command = "git remote update";
       var argNum = 0;
       for (var i = 2; i < args.length; i++) {
         String arg = args[i];
         ++argNum;
         if (argNum == 1) {
-          filter = arg;
-        } else if (argNum == 2) {
           command = arg;
+        } else if (argNum == 2) {
+          filter = arg;
         } else {
           throw new MoarException("Unexpected Arg");
         }
-      }
-      var defaultFilter = ".*";
-      if (filter.isEmpty()) {
-        filter = defaultFilter;
       }
 
       doEach(filter, command);

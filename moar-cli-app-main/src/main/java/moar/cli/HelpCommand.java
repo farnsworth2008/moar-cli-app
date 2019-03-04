@@ -112,10 +112,12 @@ public class HelpCommand
     out.print(" ");
     out.print(cyanBold(command));
     out.print(" ");
-    out.println(purple("<Module Filter RegEx> <Bash Command>"));
+    out.println(purple("<Bash Command> <Module Filter RegEx>"));
     out.println(green("     /* Run <Bash Command> in filtered module directories."));
     out.println(green("      * "));
-    out.println(green("      * Example: moar each '.*' 'git remote update' */"));
+    out.println(green("      * Example: moar each 'git remote update'"));
+    out.println(green("      * "));
+    out.println(green("      * Example: moar each 'git remote update' 'group-.*' */"));
     out.println();
   }
 
