@@ -24,29 +24,27 @@ public class EachCommand
 
     var status = new StatusLine(out, format("%s %s", filter, "Scanning"));
     var after = new Vector<Runnable>();
-    try (var async = $(4)) {
-      var futures = $();
-      for (var module : modules) {
-        $(async, futures, () -> {
-          String name = module.getName();
-          boolean filterMatches = name.matches(filter);
-          boolean ignoreMatches = name.matches(ignore);
-          if (filterMatches && !ignoreMatches) {
-            SafeResult<ExecuteResult> result = module.execCommand(command);
-            String output = result.threw() ? result.thrown().getMessage() : result.get().getOutput();
-            after.add(() -> {
-              map.put(module.getName(), output);
-            });
-            status.set(() -> (float) after.size() / modules.size(), name);
-          }
-        });
-      }
-      $(futures);
-      for (var task : after) {
-        task.run();
-      }
-      status.clear();
+    var futures = $();
+    for (var module : modules) {
+      $(async, futures, () -> {
+        String name = module.getName();
+        boolean filterMatches = name.matches(filter);
+        boolean ignoreMatches = name.matches(ignore);
+        if (filterMatches && !ignoreMatches) {
+          SafeResult<ExecuteResult> result = module.execCommand(command);
+          String output = result.threw() ? result.thrown().getMessage() : result.get().getOutput();
+          after.add(() -> {
+            map.put(module.getName(), output);
+          });
+          status.set(() -> (float) after.size() / modules.size(), name);
+        }
+      });
     }
+    $(futures);
+    for (var task : after) {
+      task.run();
+    }
+    status.clear();
 
     for (var module : modules) {
       String name = module.getName();

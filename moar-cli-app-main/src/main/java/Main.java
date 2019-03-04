@@ -12,7 +12,7 @@ import moar.cli.HelpCommand;
 public class Main {
 
   public static void main(String[] args) throws Exception {
-    try (var async = $(4)) {
+    try (var async = $(100)) {
       Class[] commands = getCommandClasses();
       for (var commandClz : commands) {
         var command = getCommand(commandClz);
