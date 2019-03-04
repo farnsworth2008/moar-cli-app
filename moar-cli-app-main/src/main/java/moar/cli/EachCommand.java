@@ -22,7 +22,7 @@ public class EachCommand
 
     var map = new HashMap<String, String>();
 
-    var progress = new StatusLine(out, format("%s %s", filter, command));
+    var status = new StatusLine(out, format("%s %s", filter, "Scanning"));
     var after = new Vector<Runnable>();
     try (var async = $(4)) {
       var futures = $();
@@ -37,7 +37,7 @@ public class EachCommand
             after.add(() -> {
               map.put(module.getName(), output);
             });
-            progress.set(() -> (float) after.size() / modules.size());
+            status.set(() -> (float) after.size() / modules.size(), name);
           }
         });
       }
@@ -45,7 +45,7 @@ public class EachCommand
       for (var task : after) {
         task.run();
       }
-      progress.clear();
+      status.clear();
     }
 
     for (var module : modules) {
