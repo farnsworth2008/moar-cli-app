@@ -14,7 +14,9 @@ public class VersionCommand
   @Override
   void doRun(String[] args) {
     String specificationVersion = VersionCommand.class.getPackage().getSpecificationVersion();
-    out.println(nonNull(specificationVersion, "unknown"));
+    status.output(out -> {
+      out.println(nonNull(specificationVersion, "unknown"));
+    });
   }
 
   @Override

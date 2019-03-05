@@ -20,7 +20,7 @@ public class DetailCommand
       filter = arg;
     }
     if (filter.isEmpty()) {
-      filter = String.format("^%s$", getCurrentModuleDir().getName());
+      filter = String.format("^%s$", dir.getName());
     }
     doStatus(filter, TRUE);
   }

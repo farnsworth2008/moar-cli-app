@@ -1,7 +1,6 @@
 package moar.cli;
 
 import static moar.sugar.Sugar.exec;
-import moar.ansi.StatusLine;
 
 public class EclipseCommand
     extends
@@ -10,9 +9,9 @@ public class EclipseCommand
   @Override
   void doModuleCommand(String[] args) {
     var command = "./gradlew cleanEclipse eclipse";
-    var status = new StatusLine(out, command);
-    exec(command, getCurrentModuleDir());
-    status.clear();
+    status.set(command);
+    exec(command, dir);
+
   }
 
 }

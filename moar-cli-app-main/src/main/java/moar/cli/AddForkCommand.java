@@ -6,7 +6,6 @@ import static moar.sugar.MoarStringUtil.writeStringToFile;
 import static moar.sugar.Sugar.exec;
 import static moar.sugar.Sugar.nonNull;
 import java.io.File;
-import moar.ansi.StatusLine;
 import moar.sugar.MoarException;
 
 public class AddForkCommand
@@ -26,7 +25,7 @@ public class AddForkCommand
         throw new MoarException("Unexpected Arg");
       }
     }
-    File forkConfigFile = new File(getWorkspaceDir(), ".fork");
+    File forkConfigFile = new File(workspaceDir, ".fork");
     if (fork.isEmpty()) {
       fork = nonNull(readStringFromFile(forkConfigFile), "");
     }
@@ -36,14 +35,14 @@ public class AddForkCommand
     if (!forkConfigFile.exists()) {
       writeStringToFile(forkConfigFile, fork);
     }
-    var dir = getCurrentModuleDir();
     String remoteUpdateCommand = "git remote update";
     var command = format("git remote add fork git@github.com:%s/%s", fork, dir.getName());
+    String checkoutCommand = "git checkout -b develop fork/develop";
     exec(command, dir);
-    var status = new StatusLine(out, remoteUpdateCommand);
+    status.set(remoteUpdateCommand);
     exec(remoteUpdateCommand, dir);
-    status.clear();
-    exec("git checkout -b develop fork/develop", dir);
+    status.set(checkoutCommand);
+    exec(checkoutCommand, dir);
   }
 
 }

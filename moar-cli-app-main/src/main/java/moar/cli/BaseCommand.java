@@ -6,17 +6,33 @@ import static java.lang.Boolean.TRUE;
 import static java.lang.System.getProperty;
 import static java.util.Collections.sort;
 import static moar.sugar.MoarStringUtil.readStringFromFile;
+import static moar.sugar.Sugar.exec;
 import static moar.sugar.Sugar.nonNull;
 import static moar.sugar.Sugar.require;
+import static moar.sugar.thread.MoarThreadSugar.$;
 import java.io.File;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Vector;
+import java.util.concurrent.Future;
 import com.google.common.base.CaseFormat;
+import moar.ansi.StatusLine;
 import moar.sugar.MoarException;
 import moar.sugar.thread.MoarAsyncProvider;
 
 public abstract class BaseCommand {
+  private static final File findModuleDir() {
+    var dir = new File(getProperty("user.dir"));
+    do {
+      if (new File(dir, ".git").isDirectory()) {
+        return dir;
+      }
+      File parentFile = dir.getParentFile();
+      dir = parentFile;
+    } while (dir.getParentFile() != null);
+    return null;
+  }
 
   @SuppressWarnings({ "javadoc", "unchecked", "rawtypes" })
   public static BaseCommand getCommand(Class clz) {
@@ -26,7 +42,6 @@ public abstract class BaseCommand {
       return (BaseCommand) newInstance;
     });
   }
-
   @SuppressWarnings("rawtypes")
   public static Class[] getCommandClasses() {
     //@formatter:off
@@ -62,37 +77,52 @@ public abstract class BaseCommand {
     return commandNames;
   }
 
+  final File dir = findModuleDir();
+
+  StatusLine status;
+
+  final Vector<Future<Object>> futures = $();
+
   MoarAsyncProvider async;
 
-  PrintStream out;
+  final File workspaceDir = findWorkspaceDir();
 
   Boolean accept(String commandName) {
     return commandName.equals(getName());
   }
 
+  void completeAsyncTasks(String string) {
+    status.setCount(futures.size(), string);
+    $(futures);
+    status.setCount(0, "");
+    futures.clear();
+  }
+
+  void doAsyncExec(String command) {
+    status.set(command);
+    $(async, futures, () -> {
+      exec(command, findModuleDir());
+      status.completeOne();
+    });
+  }
+
   abstract void doRun(String[] args);
 
-  final File getCurrentModuleDir() {
-    var dir = new File(getProperty("user.dir"));
-    do {
-      if (new File(dir, ".git").isDirectory()) {
-        return dir;
-      }
-      File parentFile = dir.getParentFile();
-      dir = parentFile;
-    } while (dir.getParentFile() != null);
-    return null;
+  private File findWorkspaceDir() {
+    var workspace = new File(getProperty("moar.workspace", getProperty("user.home") + "/moar-workspace"));
+    workspace.mkdirs();
+    return workspace;
   }
 
   final String getIgnoreRegEx() {
-    var workspace = getWorkspaceDir();
+    var workspace = workspaceDir;
     File ignoreFile = new File(workspace, ".ignore");
     String ignore = nonNull(nonNull(readStringFromFile(ignoreFile), "").strip(), "^$");
     return ignore;
   }
 
   final ArrayList<MoarModule> getModules() {
-    File workspace = getWorkspaceDir();
+    File workspace = workspaceDir;
     var modules = new ArrayList<MoarModule>();
     var dirs = workspace.listFiles(filter -> filter.isDirectory());
     for (var dir : dirs) {
@@ -108,31 +138,33 @@ public abstract class BaseCommand {
     return UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, this.getClass().getSimpleName().replaceAll("Command$", ""));
   }
 
-  final File getWorkspaceDir() {
-    var workspace = new File(getProperty("moar.workspace", getProperty("user.home") + "/moar-workspace"));
-    workspace.mkdirs();
-    return workspace;
-  }
-
   boolean includeInCommandNames() {
     return true;
   }
-
   public final Boolean run(MoarAsyncProvider async, PrintStream out, String[] args) {
-    this.async = async;
-    this.out = out;
+    setAsync(async);
     String command = args.length > 1 ? args[1] : "";
     if (accept(command)) {
+      setStatus(new StatusLine(out));
       doRun(args);
+      status.clear();
       return TRUE;
     }
     return FALSE;
   }
+  public void setAsync(MoarAsyncProvider async) {
+    this.async = async;
+  }
+
+  public void setStatus(StatusLine status) {
+    this.status = status;
+  }
 
   final void verifyCurrentModuleExists() {
-    File currentModule = getCurrentModuleDir();
+    File currentModule = findModuleDir();
     if (currentModule == null) {
       throw new MoarException("Could not find a \".git\" directory");
     }
   }
+
 }

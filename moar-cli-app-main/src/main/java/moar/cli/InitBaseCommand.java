@@ -1,14 +1,16 @@
 package moar.cli;
 
 import static java.lang.String.format;
+import static moar.sugar.MoarStringUtil.appendLinesToFile;
 import static moar.sugar.MoarStringUtil.readStringFromFile;
 import static moar.sugar.MoarStringUtil.writeStringToFile;
 import static moar.sugar.Sugar.exec;
 import static moar.sugar.Sugar.nonNull;
+import static moar.sugar.Sugar.require;
 import static moar.sugar.thread.MoarThreadSugar.$;
+import java.io.BufferedReader;
 import java.io.File;
-import java.util.concurrent.atomic.AtomicInteger;
-import moar.ansi.StatusLine;
+import java.io.FileReader;
 import moar.sugar.MoarException;
 
 public abstract class InitBaseCommand
@@ -19,14 +21,9 @@ public abstract class InitBaseCommand
     if (!moarModulesDir.exists()) {
       moarModulesDir.mkdir();
     }
-    var workspaceDir = getWorkspaceDir();
-    var moduleDir = getCurrentModuleDir();
-    var moarModuleList = moarModulesDir.list((dir, name) -> name.startsWith("git-"));
-    var progress = new StatusLine(out, "Cloning moar modules");
-    var count = moarModuleList.length;
-    var completed = new AtomicInteger();
-    var futures = $();
-    for (var moarModule : moarModuleList) {
+    var moduleDir = dir;
+    var moarModules = moarModulesDir.list((dir, name) -> name.startsWith("git-"));
+    for (var moarModule : moarModules) {
       $(async, futures, () -> {
         var moarModuleName = moarModule.replaceAll("^git-", "");
         File moduleRefFile = new File(moduleDir, moarModuleName);
@@ -40,7 +37,8 @@ public abstract class InitBaseCommand
         var moarModuleUrl = readStringFromFile(new File(moarModulesDir, moarModule)).strip();
         var init = nonNull(readStringFromFile(initFile), "").strip();
         StringBuilder builder = new StringBuilder();
-        builder.append("git clone --recurse-submodules %s;");
+        String cloneCommand = "git clone --recurse-submodules %s;";
+        builder.append(cloneCommand);
         builder.append("cd %s;");
         builder.append("git reset --hard %s");
         String command = format(builder.toString(), moarModuleUrl, moarModuleName, init);
@@ -53,22 +51,20 @@ public abstract class InitBaseCommand
           if (!refModuleCloneDir.exists()) {
             exec(command, workspaceDir);
           }
-          var currentDir = getCurrentModuleDir();
+          var currentDir = dir;
           var refModuleName = refModuleCloneDir.getName();
           var refModulePath = refModuleCloneDir.getAbsolutePath();
           exec(format("ln -s %s %s", refModulePath, refModuleName), currentDir);
           init = exec("git rev-parse HEAD", refModuleCloneDir).getOutput();
           writeStringToFile(initFile, init);
-          progress.set(() -> (float) completed.incrementAndGet() / count);
         }
+        status.completeOne();
       });
     }
-    $(futures);
-    progress.clear();
+    completeAsyncTasks(format("%d modules", moarModules.length));
   }
 
   protected void doInitCommand(String[] args, boolean nested) {
-    var dir = getCurrentModuleDir();
     var url = "";
     if (args != null) {
       var argNum = 0;
@@ -84,15 +80,15 @@ public abstract class InitBaseCommand
         url = "git@github.com:moar-stuff/moar-sugar.git";
       }
     }
-    File moarModulesDir = new File(getCurrentModuleDir(), "moar-modules");
+    File moarModulesDir = new File(dir, "moar-modules");
     if (!url.isEmpty()) {
       var refModuleName = url.replaceAll("^.*/", "").replaceAll("\\..*", "");
       File refFile = new File(moarModulesDir, "git-" + refModuleName);
       writeStringToFile(refFile, url);
+      updateIgnoreFile(format("/%s", refModuleName));
     }
     doCloneModules(moarModulesDir, nested);
 
-    var status = new StatusLine(out, "setup");
     var hasMoarSugar = new File(dir, "moar-sugar").exists();
     var hasGradleWrapper = new File(dir, "gradlew").exists();
     var hasBuildGradle = new File(dir, "build.gradle").exists();
@@ -100,51 +96,75 @@ public abstract class InitBaseCommand
     var hasLicense = new File(dir, "LICENSE").exists();
 
     if (hasMoarSugar && !hasGradleWrapper) {
-      String moduleName = getCurrentModuleDir().getName();
+      String moduleName = dir.getName();
       String mkdirMainCmd = "mkdir -p %s-main/src/main/java;";
-      String settingsGradleCmd = "cat moar-sugar/template-settings.gradle | sed 's/MODULE/%s/g' > settings.gradle;";
       String buildMainGradleCmd = "cp moar-sugar/template-main-build.gradle %s-main/build.gradle;";
-      String buildGradleCmd = "cp moar-sugar/template-build.gradle build.gradle;";
       String buildMainJavaCmd = "cp moar-sugar/template-Main.java %s-main/src/main/java/Main.java;";
-      StringBuilder builder = new StringBuilder();
       if (!hasBuildGradle) {
-        builder.append("cp moar-sugar/template-build.sh build.sh;");
-        builder.append("cp moar-sugar/template-run.sh run.sh;");
-        builder.append(buildGradleCmd);
-        builder.append(format(settingsGradleCmd, moduleName));
+        String settingsGradleCmd = "cat moar-sugar/template-settings.gradle | sed 's/MODULE/%s/g' > settings.gradle";
+        doAsyncExec("cp moar-sugar/template-build.sh build.sh");
+        doAsyncExec("cp moar-sugar/template-run.sh run.sh");
+        doAsyncExec("cp moar-sugar/template-build.gradle build.gradle");
+        doAsyncExec(format(settingsGradleCmd, moduleName));
         if (!new File(dir.getAbsolutePath() + format("/%s-main/src/main/java", moduleName)).exists()) {
-          builder.append(format(mkdirMainCmd, moduleName));
-          builder.append(format(buildMainGradleCmd, moduleName));
-          builder.append(format(buildMainJavaCmd, moduleName));
+          doAsyncExec(format(mkdirMainCmd, moduleName));
+          doAsyncExec(format(buildMainGradleCmd, moduleName));
+          doAsyncExec(format(buildMainJavaCmd, moduleName));
         }
         if (!hasGitIgnore) {
-          builder.append("cp moar-sugar/template.gitignore .gitignore;");
+          doAsyncExec("cp moar-sugar/template.gitignore .gitignore;");
         }
         if (!hasLicense) {
-          builder.append("cp moar-sugar/LICENSE LICENSE;");
+          doAsyncExec("cp moar-sugar/LICENSE LICENSE;");
         }
       }
-      builder.append("ln -s moar-sugar/gradle gradle;");
-      builder.append("ln -s moar-sugar/gradlew gradlew");
-      exec(builder.toString(), dir);
+      doAsyncExec("ln -s moar-sugar/gradle gradle;");
+      doAsyncExec("ln -s moar-sugar/gradlew gradlew");
+      completeAsyncTasks("link");
       hasGradleWrapper = true;
     }
     if (hasGradleWrapper) {
-      String gradleCommand = "./gradlew cleanEclipse eclipse";
-      status.set(gradleCommand);
-      exec(gradleCommand, dir);
+      doAsyncExec("./gradlew cleanEclipse eclipse");
     }
+    completeAsyncTasks("gradle");
     if (new File(dir, "moar-setup.sh").exists()) {
-      String moarSetupCommand = "./moar-setup.sh";
-      status.set(moarSetupCommand);
-      exec(moarSetupCommand, dir);
+      doAsyncExec("./moar-setup.sh");
     }
-    status.clear();
+    completeAsyncTasks("setup");
+
   }
 
   @Override
   protected boolean includeInCommandNames() {
     return true;
+  }
+
+  private boolean searchIgnoreFile(File file, String ignoreSpec) {
+    return require(() -> {
+      var found = false;
+      if (file.exists()) {
+        try (var fr = new FileReader(file)) {
+          try (var br = new BufferedReader(fr)) {
+            String line;
+            while ((line = br.readLine()) != null) {
+              if (line.equals(ignoreSpec)) {
+                found = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+      return found;
+    });
+  }
+
+  private void updateIgnoreFile(String ignoreSpec) {
+    File gitIgnoreFile = new File(dir, ".gitignore");
+    var found = searchIgnoreFile(gitIgnoreFile, ignoreSpec);
+    if (!found) {
+      appendLinesToFile(gitIgnoreFile, ignoreSpec);
+    }
   }
 
 }

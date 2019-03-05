@@ -48,13 +48,15 @@ public class HelpCommand
     if (!command.matches(filter)) {
       return;
     }
-    out.print(purpleBold(args[0]));
-    out.print(" ");
-    out.print(cyanBold(command));
-    out.print(" ");
-    out.println(purple("<Git Hub Account>"));
-    out.println(green("     /* Add a fork remote. */"));
-    out.println();
+    status.output(out -> {
+      out.print(purpleBold(args[0]));
+      out.print(" ");
+      out.print(cyanBold(command));
+      out.print(" ");
+      out.println(purple("<Git Hub Account>"));
+      out.println(green("     /* Add a fork remote. */"));
+      out.println();
+    });
   }
 
   private void outAddModulesHelp(String[] args) {
@@ -62,31 +64,35 @@ public class HelpCommand
     if (!command.matches(filter)) {
       return;
     }
-    out.print(purpleBold(args[0]));
-    out.print(" ");
-    out.print(cyanBold(command));
-    out.print(" ");
-    out.println(purple("<Git URL>"));
-    out.println(green("     /* Add a moar-module reference. */"));
-    out.println();
+    status.output(out -> {
+      out.print(purpleBold(args[0]));
+      out.print(" ");
+      out.print(cyanBold(command));
+      out.print(" ");
+      out.println(purple("<Git URL>"));
+      out.println(green("     /* Add a moar-module reference. */"));
+      out.println();
+    });
   }
 
   private void outCommandList() {
-    out.print(green("     /* Commands: "));
-    var commandNames = getCommandNames();
-    for (int i = 0; i < commandNames.size(); i++) {
-      String commandName = commandNames.get(i);
-      out.print(green(commandName));
-      if (i < commandNames.size() - 1) {
-        out.print(green(", "));
+    status.output(out -> {
+      out.print(green("     /* Commands: "));
+      var commandNames = getCommandNames();
+      for (int i = 0; i < commandNames.size(); i++) {
+        String commandName = commandNames.get(i);
+        out.print(green(commandName));
+        if (i < commandNames.size() - 1) {
+          out.print(green(", "));
+        }
+        if (i == 4) {
+          out.println();
+          out.print(green("      * "));
+        }
       }
-      if (i == 4) {
-        out.println();
-        out.print(green("      * "));
-      }
-    }
-    out.println(green(" */"));
-    out.println();
+      out.println(green(" */"));
+      out.println();
+    });
   }
 
   private void outDetailHelp(String[] args) {
@@ -94,13 +100,15 @@ public class HelpCommand
     if (!command.matches(filter)) {
       return;
     }
-    out.print(purpleBold(args[0]));
-    out.print(" ");
-    out.print(cyanBold(command));
-    out.print(" ");
-    out.println(purple("[<Module Filter RegEx>]"));
-    out.println(green("     /* Shows detail status. */"));
-    out.println();
+    status.output(out -> {
+      out.print(purpleBold(args[0]));
+      out.print(" ");
+      out.print(cyanBold(command));
+      out.print(" ");
+      out.println(purple("[<Module Filter RegEx>]"));
+      out.println(green("     /* Shows detail status. */"));
+      out.println();
+    });
   }
 
   private void outEachHelp(String[] args) {
@@ -108,17 +116,19 @@ public class HelpCommand
     if (!command.matches(filter)) {
       return;
     }
-    out.print(purpleBold(args[0]));
-    out.print(" ");
-    out.print(cyanBold(command));
-    out.print(" ");
-    out.println(purple("<Bash Command> <Module Filter RegEx>"));
-    out.println(green("     /* Run <Bash Command> in filtered module directories."));
-    out.println(green("      * "));
-    out.println(green("      * Example: moar each 'git remote update'"));
-    out.println(green("      * "));
-    out.println(green("      * Example: moar each 'git remote update' 'group-.*' */"));
-    out.println();
+    status.output(out -> {
+      out.print(purpleBold(args[0]));
+      out.print(" ");
+      out.print(cyanBold(command));
+      out.print(" ");
+      out.println(purple("<Bash Command> <Module Filter RegEx>"));
+      out.println(green("     /* Run <Bash Command> in filtered module directories."));
+      out.println(green("      * "));
+      out.println(green("      * Example: moar each 'git remote update'"));
+      out.println(green("      * "));
+      out.println(green("      * Example: moar each 'git remote update' 'group-.*' */"));
+      out.println();
+    });
   }
 
   private void outEclipseHelp(String[] args) {
@@ -126,12 +136,14 @@ public class HelpCommand
     if (!command.matches(filter)) {
       return;
     }
-    out.print(purpleBold(args[0]));
-    out.print(" ");
-    out.println(cyanBold(command));
-    out.print(" ");
-    out.println(green("     /* Run './gradlew cleanEclipse eclipse'. */"));
-    out.println();
+    status.output(out -> {
+      out.print(purpleBold(args[0]));
+      out.print(" ");
+      out.println(cyanBold(command));
+      out.print(" ");
+      out.println(green("     /* Run './gradlew cleanEclipse eclipse'. */"));
+      out.println();
+    });
   }
 
   private void outHelpHelp(String[] args) {
@@ -139,15 +151,17 @@ public class HelpCommand
     if (!command.matches(filter)) {
       return;
     }
-    out.print(purpleBold(args[0]));
-    out.print(" ");
-    out.print(cyanBold(command));
-    out.print(" ");
-    out.println(purple("[<command>]"));
-    out.println(green("     /* Shows this help or help for a specific command."));
-    out.println(green("      * "));
-    out.println(green("      * Example: moar --help status */"));
-    out.println();
+    status.output(out -> {
+      out.print(purpleBold(args[0]));
+      out.print(" ");
+      out.print(cyanBold(command));
+      out.print(" ");
+      out.println(purple("[<command>]"));
+      out.println(green("     /* Shows this help or help for a specific command."));
+      out.println(green("      * "));
+      out.println(green("      * Example: moar --help status */"));
+      out.println();
+    });
   }
 
   private void outInitHelp(String[] args) {
@@ -155,16 +169,18 @@ public class HelpCommand
     if (!command.matches(filter)) {
       return;
     }
-    out.print(purpleBold(args[0]));
-    out.print(" ");
-    out.println(cyanBold(command));
-    out.println(green("     /* Initalize will clone referenced modules and setup"));
-    out.println(green("      * symbolic linking. This supports development"));
-    out.println(green("      * environments where the shared module version is"));
-    out.println(green("      * used.  The assoicated 'init-' file is updated if"));
-    out.println(green("      * the shared module differs from the specified "));
-    out.println(green("      * version. */"));
-    out.println();
+    status.output(out -> {
+      out.print(purpleBold(args[0]));
+      out.print(" ");
+      out.println(cyanBold(command));
+      out.println(green("     /* Initalize will clone referenced modules and setup"));
+      out.println(green("      * symbolic linking. This supports development"));
+      out.println(green("      * environments where the shared module version is"));
+      out.println(green("      * used.  The assoicated 'init-' file is updated if"));
+      out.println(green("      * the shared module differs from the specified "));
+      out.println(green("      * version. */"));
+      out.println();
+    });
   }
 
   private void outNestHelp(String[] args) {
@@ -172,27 +188,31 @@ public class HelpCommand
     if (!command.matches(filter)) {
       return;
     }
-    out.print(purpleBold(args[0]));
-    out.print(" ");
-    out.println(cyanBold(command));
-    out.println(green("     /* Clone referenced modules in a \"nested\" structure"));
-    out.println(green("      * without symbolic linking.  This supports accurate"));
-    out.println(green("      * builds because the nested module version will match"));
-    out.println(green("      * the state of the assoicated 'init-' file */"));
-    out.println();
+    status.output(out -> {
+      out.print(purpleBold(args[0]));
+      out.print(" ");
+      out.println(cyanBold(command));
+      out.println(green("     /* Clone referenced modules in a \"nested\" structure"));
+      out.println(green("      * without symbolic linking.  This supports accurate"));
+      out.println(green("      * builds because the nested module version will match"));
+      out.println(green("      * the state of the assoicated 'init-' file */"));
+      out.println();
+    });
   }
 
   private void outProgramHelp(String[] args) {
-    out.print(purpleBold(args[0]) + " [");
-    out.print(red("--version"));
-    out.print("] [");
-    out.print(red("--help"));
-    out.print("] ");
-    out.print(cyanBold("<command> "));
-    out.print("[");
-    out.print(purple("<args>"));
-    out.print("]");
-    out.println();
+    status.output(out -> {
+      out.print(purpleBold(args[0]) + " [");
+      out.print(red("--version"));
+      out.print("] [");
+      out.print(red("--help"));
+      out.print("] ");
+      out.print(cyanBold("<command> "));
+      out.print("[");
+      out.print(purple("<args>"));
+      out.print("]");
+      out.println();
+    });
   }
 
   private void outPushHelp(String[] args) {
@@ -200,23 +220,25 @@ public class HelpCommand
     if (!command.matches(filter)) {
       return;
     }
-    out.print(purpleBold(args[0]));
-    out.print(" ");
-    out.print(cyanBold(command));
-    out.print(" ");
-    out.println(purple("[<origin> | <master>]"));
-    out.println(green("     /* Push to upstream and optionally other remotes."));
-    out.println(green("      * "));
-    out.println(green("      * Push to the current upstream."));
-    out.println(green("      * Example: moar push"));
-    out.println(green("      * "));
-    out.println(green("      * Push to the current upstream, and origin."));
-    out.println(green("      * Example: moar push origin"));
-    out.println(green("      * "));
-    out.println(green("      * Push to the current upstream, origin, and origin"));
-    out.println(green("      * master."));
-    out.println(green("      * Example: moar push master */"));
-    out.println();
+    status.output(out -> {
+      out.print(purpleBold(args[0]));
+      out.print(" ");
+      out.print(cyanBold(command));
+      out.print(" ");
+      out.println(purple("[<origin> | <master>]"));
+      out.println(green("     /* Push to upstream and optionally other remotes."));
+      out.println(green("      * "));
+      out.println(green("      * Push to the current upstream."));
+      out.println(green("      * Example: moar push"));
+      out.println(green("      * "));
+      out.println(green("      * Push to the current upstream, and origin."));
+      out.println(green("      * Example: moar push origin"));
+      out.println(green("      * "));
+      out.println(green("      * Push to the current upstream, origin, and origin"));
+      out.println(green("      * master."));
+      out.println(green("      * Example: moar push master */"));
+      out.println();
+    });
   }
 
   private void outStatusHelp(String[] args) {
@@ -224,15 +246,17 @@ public class HelpCommand
     if (!command.matches(filter)) {
       return;
     }
-    out.print(purpleBold(args[0]));
-    out.print(" ");
-    out.print(cyanBold(command));
-    out.print(" ");
-    out.println(purple("[<Module Filter RegEx>]"));
-    out.println(green("     /* Show status."));
-    out.println(green("      * "));
-    out.println(green("      * Example: moar status 'group-.*' */"));
-    out.println();
+    status.output(out -> {
+      out.print(purpleBold(args[0]));
+      out.print(" ");
+      out.print(cyanBold(command));
+      out.print(" ");
+      out.println(purple("[<Module Filter RegEx>]"));
+      out.println(green("     /* Show status."));
+      out.println(green("      * "));
+      out.println(green("      * Example: moar status 'group-.*' */"));
+      out.println();
+    });
   }
 
 }

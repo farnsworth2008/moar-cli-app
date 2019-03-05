@@ -42,63 +42,43 @@ public class MoarModule {
   }
 
   public List<String> getAheadCommits() {
-    return aheadCommits;
-  }
-
-  public Integer getAheadCount() {
     if (aheadCommits == null) {
       var command = GIT_LOG + format("%s.. 2> /dev/null", getUpstreamBranch());
       aheadCommits = listCommandResults(command);
     }
-    return aheadCommits.size();
+    return aheadCommits;
   }
 
   public List<String> getAheadOriginCommits() {
-    return aheadOriginCommits;
-  }
-
-  public Integer getAheadOriginCount() {
     if (aheadOriginCommits == null) {
       var command = GIT_LOG + format("origin/develop..%s 2> /dev/null", getUpstreamBranch());
       aheadOriginCommits = listCommandResults(command);
     }
-    return aheadOriginCommits.size();
+    return aheadOriginCommits;
   }
 
   public List<String> getBehindCommits() {
-    return behindCommits;
-  }
-
-  public Integer getBehindCount() {
     if (behindCommits == null) {
       var command = GIT_LOG + format("..%s 2> /dev/null", getUpstreamBranch());
       behindCommits = listCommandResults(command);
     }
-    return behindCommits.size();
+    return behindCommits;
   }
 
   public List<String> getBehindMasterCommits() {
-    return behindMasterCommits;
-  }
-
-  public Integer getBehindMasterCount() {
     if (behindMasterCommits == null) {
       var command = GIT_LOG + format("origin/develop..origin/master 2> /dev/null", getUpstreamBranch());
       behindMasterCommits = listCommandResults(command);
     }
-    return behindMasterCommits.size();
+    return behindMasterCommits;
   }
 
   public List<String> getBehindOriginCommits() {
-    return behindOriginCommits;
-  }
-
-  public Integer getBehindOriginCount() {
     if (behindOriginCommits == null) {
       var command = GIT_LOG + format("%s..origin/develop 2> /dev/null", getUpstreamBranch());
       behindOriginCommits = listCommandResults(command);
     }
-    return behindOriginCommits.size();
+    return behindOriginCommits;
   }
 
   public String getBranch() {
@@ -117,15 +97,11 @@ public class MoarModule {
     return dir.getName();
   }
 
-  public Integer getUncommitedCount() {
+  public List<String> getUncommitedFiles() {
     if (uncommitedFiles == null) {
       var command = "git status --short 2> /dev/null";
       uncommitedFiles = listCommandResults(command);
     }
-    return uncommitedFiles.size();
-  }
-
-  public List<String> getUncommitedFiles() {
     return uncommitedFiles;
   }
 

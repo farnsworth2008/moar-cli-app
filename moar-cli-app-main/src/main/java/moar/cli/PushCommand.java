@@ -11,14 +11,13 @@ public class PushCommand
 
   private void doCommand(StatusLine status, String command) {
     status.set(command);
-    exec(command, getCurrentModuleDir());
+    exec(command, dir);
     status.completeOne();
   }
 
   @Override
   void doModuleCommand(String[] args) {
-    var status = new StatusLine(out, "Push");
-    var futures = $();
+    status.set("Push");
     $(async, futures, () -> doCommand(status, "git push"));
     for (var i = 2; i < args.length; i++) {
       String arg = args[i];
@@ -30,9 +29,8 @@ public class PushCommand
         $(async, futures, () -> doCommand(status, format("git push %s", arg)));
       }
     }
-    status.setCount(futures.size());
-    $(futures);
-    status.clear();
+    completeAsyncTasks("push");
+
   }
 
 }
