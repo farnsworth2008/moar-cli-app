@@ -2,6 +2,9 @@ package moar.cli;
 
 import static java.lang.String.format;
 import static moar.ansi.Ansi.cyanBold;
+import static moar.ansi.Ansi.green;
+import static moar.ansi.Ansi.purple;
+import static moar.ansi.Ansi.purpleBold;
 import static moar.sugar.Sugar.require;
 import static moar.sugar.thread.MoarThreadSugar.$;
 import java.util.Vector;
@@ -75,6 +78,23 @@ public class EachCommand
       }
 
       doEach(filter, command);
+    });
+  }
+
+  @Override
+  void outHelp() {
+    status.output(out -> {
+      out.print(purpleBold(SCRIPT_NAME));
+      out.print(" ");
+      out.print(cyanBold(name));
+      out.print(" ");
+      out.println(purple("<Bash Command> <Module Filter RegEx>"));
+      out.println(green(format("     /* Run <Bash Command> in filtered module directories.")));
+      out.println(green(format("      * ")));
+      out.println(green(format("      * Example: moar %s 'git remote update'", name)));
+      out.println(green(format("      * ")));
+      out.println(green(format("      * Example: moar %s 'git remote update' 'group-.*' */", name)));
+      out.println();
     });
   }
 

@@ -24,4 +24,7 @@ public class VersionCommand
     return false;
   }
 
+  @Override
+  void outHelp() {}
+
 }

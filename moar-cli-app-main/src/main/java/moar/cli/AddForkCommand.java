@@ -1,6 +1,10 @@
 package moar.cli;
 
 import static java.lang.String.format;
+import static moar.ansi.Ansi.cyanBold;
+import static moar.ansi.Ansi.green;
+import static moar.ansi.Ansi.purple;
+import static moar.ansi.Ansi.purpleBold;
 import static moar.sugar.MoarStringUtil.readStringFromFile;
 import static moar.sugar.MoarStringUtil.writeStringToFile;
 import static moar.sugar.Sugar.exec;
@@ -43,6 +47,19 @@ public class AddForkCommand
     exec(remoteUpdateCommand, dir);
     status.set(checkoutCommand);
     exec(checkoutCommand, dir);
+  }
+
+  @Override
+  void outHelp() {
+    status.output(out -> {
+      out.print(purpleBold(SCRIPT_NAME));
+      out.print(" ");
+      out.print(cyanBold(getName()));
+      out.print(" ");
+      out.println(purple("<Git Hub Account>"));
+      out.println(green("     /* Add a fork remote. */"));
+      out.println();
+    });
   }
 
 }

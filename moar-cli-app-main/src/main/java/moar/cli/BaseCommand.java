@@ -22,6 +22,7 @@ import moar.sugar.MoarException;
 import moar.sugar.thread.MoarAsyncProvider;
 
 public abstract class BaseCommand {
+  protected static String SCRIPT_NAME = "MOAR";
   private static final File findModuleDir() {
     var dir = new File(getProperty("user.dir"));
     do {
@@ -87,6 +88,12 @@ public abstract class BaseCommand {
 
   final File workspaceDir = findWorkspaceDir();
 
+  final String name;
+
+  public BaseCommand() {
+    name = UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, this.getClass().getSimpleName().replaceAll("Command$", ""));
+  }
+
   Boolean accept(String commandName) {
     return commandName.equals(getName());
   }
@@ -135,12 +142,13 @@ public abstract class BaseCommand {
   }
 
   public String getName() {
-    return UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, this.getClass().getSimpleName().replaceAll("Command$", ""));
+    return name;
   }
-
   boolean includeInCommandNames() {
     return true;
   }
+  abstract void outHelp();
+
   public final Boolean run(MoarAsyncProvider async, PrintStream out, String[] args) {
     setAsync(async);
     String command = args.length > 1 ? args[1] : "";
@@ -152,6 +160,7 @@ public abstract class BaseCommand {
     }
     return FALSE;
   }
+
   public void setAsync(MoarAsyncProvider async) {
     this.async = async;
   }
@@ -166,5 +175,4 @@ public abstract class BaseCommand {
       throw new MoarException("Could not find a \".git\" directory");
     }
   }
-
 }

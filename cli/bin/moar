@@ -1,6 +1,11 @@
 #!/bin/bash
 
-binDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+if ! [ -z MOAR_JAVA_HOME ]; then
+  export JAVA_HOME=$MOAR_JAVA_HOME
+  export PATH=$MOAR_JAVA_HOME/bin:$PATH
+fi
+
+binDir="$( cd "$(dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 jar=${binDir}/moar-cli-app-main.fat.jar
 
 java -Dmoar.ansi.enabled=true -jar ${jar} moar "$@"
