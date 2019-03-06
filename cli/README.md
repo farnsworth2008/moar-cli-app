@@ -23,4 +23,3 @@ npm install -g moar-cli
 ```bash
 moar --help
 ```
-
