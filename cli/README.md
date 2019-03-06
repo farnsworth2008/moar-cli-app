@@ -25,4 +25,3 @@ If your system does not have Java 11 as the global default, you can define an en
 ```bash
 moar --help
 ```
-
