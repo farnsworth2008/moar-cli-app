@@ -95,7 +95,7 @@ public abstract class BaseCommand {
   }
 
   Boolean accept(String commandName) {
-    return commandName.equals(getName());
+    return commandName.startsWith(getName());
   }
 
   void completeAsyncTasks(String string) {

@@ -1,7 +1,6 @@
 #!/bin/bash
 
 if ! [ -z MOAR_JAVA_HOME ]; then
-  export JAVA_HOME=$MOAR_JAVA_HOME
   export PATH=$MOAR_JAVA_HOME/bin:$PATH
 fi
 

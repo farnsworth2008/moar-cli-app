@@ -13,8 +13,9 @@ public class EclipseCommand
   void doModuleCommand(String[] args) {
     var command = "./gradlew cleanEclipse eclipse";
     status.set(command);
-    exec(command, dir);
-
+    status.output(out -> {
+      out.println(exec(command, dir).getOutput());
+    });
   }
 
   @Override
