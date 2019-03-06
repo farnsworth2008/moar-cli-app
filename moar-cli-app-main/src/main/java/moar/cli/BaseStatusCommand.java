@@ -6,7 +6,6 @@ import static java.lang.String.format;
 import static moar.ansi.Ansi.GREEN;
 import static moar.ansi.Ansi.GREEN_UNDERLINED;
 import static moar.ansi.Ansi.PURPLE;
-import static moar.ansi.Ansi.PURPLE_BOLD;
 import static moar.ansi.Ansi.PURPLE_UNDERLINED;
 import static moar.ansi.Ansi.RED;
 import static moar.ansi.Ansi.RED_UNDERLINED;
@@ -88,7 +87,7 @@ public abstract class BaseStatusCommand
 
       Integer uncommitedCount = module.getUncommitedFiles().size();
       if (uncommitedCount != 0) {
-        b.append(purple(uncommitedCount));
+        b.append(purple(format("[%d]", uncommitedCount)));
         b.append(" ");
       }
       Integer aheadCount = module.getAheadCommits().size();
@@ -121,11 +120,10 @@ public abstract class BaseStatusCommand
     int aheadCount = module.getAheadCommits().size();
     if (aheadCount > 0) {
       status.output(out -> {
-        out.print("     ");
+        out.print("  ");
         out.print(format(GREEN.apply("(%d) "), aheadCount));
         out.println(GREEN_UNDERLINED.apply(format("HEAD -> %s", branch)));
         outDetailLines(out, GREEN, module.getAheadCommits());
-        outShortStat(out, module, GREEN, format("%s..HEAD", branch));
       });
     }
   }
@@ -134,11 +132,10 @@ public abstract class BaseStatusCommand
     int aheadOriginCount = module.getAheadOriginCommits().size();
     if (aheadOriginCount > 0) {
       status.output(out -> {
-        out.print("     ");
+        out.print("  ");
         out.print(format(GREEN.apply("(%d) "), aheadOriginCount));
-        out.println(GREEN_UNDERLINED.apply(format("%s --> origin/develop", branch)));
+        out.println(GREEN_UNDERLINED.apply(format("%s -> origin/develop", branch)));
         outDetailLines(out, GREEN, module.getAheadOriginCommits());
-        outShortStat(out, module, GREEN, format("origin/develop..%s", branch));
       });
     }
   }
@@ -147,23 +144,22 @@ public abstract class BaseStatusCommand
     int behindCount = module.getBehindCommits().size();
     if (behindCount > 0) {
       status.output(out -> {
-        out.print("     ");
+        out.print("  ");
         out.print(format(RED.apply("(%d) "), behindCount));
         out.println(RED_UNDERLINED.apply(format("HEAD <- %s", branch)));
         outDetailLines(out, RED, module.getBehindCommits());
-        outShortStat(out, module, RED, format("HEAD..%s", branch));
       });
     }
   }
 
   private void outBehindMasterDetail(String branch, MoarModule module) {
-    if (module.getBehindMasterCommits().size() > 0) {
+    int behindMasterCount = module.getBehindMasterCommits().size();
+    if (behindMasterCount > 0) {
       status.output(out -> {
-        out.print("     ");
-        var command = format("origin/develop..origin/master", branch);
-        out.println(PURPLE_UNDERLINED.apply(command));
+        out.print("  ");
+        out.print(format(PURPLE.apply("[%d] "), behindMasterCount));
+        out.println(PURPLE_UNDERLINED.apply(format("origin/develop <- origin/master", branch)));
         outDetailLines(out, PURPLE, module.getBehindMasterCommits());
-        outShortStat(out, module, PURPLE, command);
       });
     }
   }
@@ -172,11 +168,10 @@ public abstract class BaseStatusCommand
     int behindOriginCount = module.getBehindOriginCommits().size();
     if (behindOriginCount > 0) {
       status.output(out -> {
-        out.print("     ");
+        out.print("  ");
         out.print(format(RED.apply("(%d) "), behindOriginCount));
         out.println(RED_UNDERLINED.apply(format("%s <- origin/develop", branch)));
         outDetailLines(out, RED, module.getBehindOriginCommits());
-        outShortStat(out, module, RED, format("%s..origin/develop", branch));
       });
     }
   }
@@ -235,29 +230,21 @@ public abstract class BaseStatusCommand
         b.append(") ");
       }
       if (behindMasterCount != 0) {
-        b.append(purple(behindMasterCount));
+        b.append(purple(format("[%d]", behindMasterCount)));
       }
       out.println(b.toString());
     });
-  }
-
-  private void outShortStat(PrintStream out, MoarModule module, Ansi color, String command) {
-    var pad = "       === ";
-    String output = module.execCommand("git diff --shortstat " + command).get().getOutput();
-    var summary = output.strip().replaceAll("( changed| insertions| deletions)", "");
-    out.println(color.apply(pad + summary));
   }
 
   private void outUncommitedDetail(MoarModule module) {
     int uncommitedCount = module.getUncommitedFiles().size();
     if (uncommitedCount > 0) {
       status.output(out -> {
-        out.print("     ");
-        out.print(PURPLE.apply(uncommitedCount));
+        out.print("  ");
+        out.print(PURPLE.apply(format("[%d]", uncommitedCount)));
         out.print(" ");
-        out.println(PURPLE_UNDERLINED.apply("--> HEAD"));
+        out.println(PURPLE_UNDERLINED.apply("-> HEAD"));
         outDetailLines(out, PURPLE, module.getUncommitedFiles());
-        outShortStat(out, module, PURPLE, "HEAD");
       });
     }
   }
