@@ -42,13 +42,34 @@ public abstract class BaseStatusCommand
       boolean ignoreMatches = name.matches(ignore);
       if (filterMatches && !ignoreMatches) {
         var m = module;
-        $(a, f, () -> s.completeOne(() -> m.getBranch()));
-        $(a, f, () -> s.completeOne(() -> m.getUncommitedFiles().size()));
-        $(a, f, () -> s.completeOne(() -> m.getAheadCommits()));
-        $(a, f, () -> s.completeOne(() -> m.getBehindCommits()));
-        $(a, f, () -> s.completeOne(() -> m.getAheadOriginCommits()));
-        $(a, f, () -> s.completeOne(() -> m.getBehindOriginCommits()));
-        $(a, f, () -> s.completeOne(() -> m.getBehindMasterCommits()));
+        $(a, f, () -> {
+          m.getBranch();
+          s.completeOne();
+        });
+        $(a, f, () -> {
+          m.getUncommitedFiles().size();
+          s.completeOne();
+        });
+        $(a, f, () -> {
+          m.getAheadCommits();
+          s.completeOne();
+        });
+        $(a, f, () -> {
+          m.getBehindCommits();
+          s.completeOne();
+        });
+        $(a, f, () -> {
+          m.getAheadOriginCommits();
+          s.completeOne();
+        });
+        $(a, f, () -> {
+          m.getBehindOriginCommits();
+          s.completeOne();
+        });
+        $(a, f, () -> {
+          m.getBehindMasterCommits();
+          s.completeOne();
+        });
         step1.add(() -> {
           Integer lineLen = getLineLen(module);
           maxLineLen.set(max(maxLineLen.get(), lineLen));

@@ -13,28 +13,47 @@ public class PushCommand
     extends
     ModuleCommand {
 
-  private void doCommand(StatusLine status, String command) {
+  private String doCommand(StatusLine status, String command) {
     status.set(command);
-    exec(command, dir);
-    status.completeOne();
+    try {
+      return command + "\n" + exec(command, dir).getOutput();
+    } finally {
+      status.completeOne();
+    }
   }
 
   @Override
   void doModuleCommand(String[] args) {
     status.set("Push");
-    $(async, futures, () -> doCommand(status, "git push"));
+    $(async, futures, () -> {
+      return doCommand(status, "git push");
+    });
     for (var i = 2; i < args.length; i++) {
       String arg = args[i];
       if (arg.equals("master")) {
-        $(async, futures, () -> doCommand(status, "git push origin"));
-        $(async, futures, () -> doCommand(status, "git push fork HEAD:master"));
-        $(async, futures, () -> doCommand(status, "git push origin HEAD:master"));
+        $(async, futures, () -> {
+          return doCommand(status, "git push origin");
+        });
+        $(async, futures, () -> {
+          return doCommand(status, "git push fork HEAD:master");
+        });
+        $(async, futures, () -> {
+          return doCommand(status, "git push origin HEAD:master");
+        });
       } else {
-        $(async, futures, () -> doCommand(status, format("git push %s", arg)));
+        $(async, futures, () -> {
+          return doCommand(status, format("git push %s", arg));
+        });
       }
     }
-    completeAsyncTasks("push");
-
+    status.setCount(futures.size(), "push");
+    var results = $(futures);
+    status.setCount(0, "");
+    status.output(out -> {
+      for (var result : results) {
+        out.println(result.get());
+      }
+    });
   }
 
   @Override
