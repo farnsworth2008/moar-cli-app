@@ -151,7 +151,7 @@ public abstract class BaseCommand {
     setAsync(async);
     String command = args.length > 1 ? args[1] : "";
     if (accept(command)) {
-      setStatus(new StatusLine(out));
+      setStatus(new StatusLine());
       doRun(args);
       status.clear();
       return TRUE;
