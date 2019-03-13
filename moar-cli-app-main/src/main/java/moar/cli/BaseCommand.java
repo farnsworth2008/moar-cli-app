@@ -99,6 +99,7 @@ public abstract class BaseCommand {
   }
 
   void completeAsyncTasks(String string) {
+    status.setCount(futures.size(), string);
     $(futures);
     status.setCount(0, "");
   }
