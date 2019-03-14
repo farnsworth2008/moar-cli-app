@@ -50,6 +50,7 @@ public class EachCommand
       });
     }
     $(futures);
+    status.remove();
     if (command.equals("git remote update")) {
       StatusCommand statusCommand = new StatusCommand();
       statusCommand.setAsync(async);
@@ -59,7 +60,6 @@ public class EachCommand
         task.run();
       }
     }
-    status.remove();
   }
 
   @Override

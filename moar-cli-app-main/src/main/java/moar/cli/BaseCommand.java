@@ -143,7 +143,7 @@ public abstract class BaseCommand {
 
   public final Boolean run(MoarAsyncProvider async, PrintStream out, String[] args) {
     setAsync(async);
-    String command = args.length > 1 ? args[1] : "";
+    String command = args.length > 1 ? args[1] : "help";
     if (accept(command)) {
       doRun(args);
       return TRUE;
