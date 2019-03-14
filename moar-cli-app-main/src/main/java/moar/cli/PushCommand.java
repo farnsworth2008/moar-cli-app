@@ -14,9 +14,9 @@ public class PushCommand
     ModuleCommand {
 
   private void doCommand(String command) {
-    exec(command, dir).getOutput();
+    var output = exec(command, dir).getOutput();
     synchronized (out) {
-      out.println(out);
+      out.println(output);
     }
   }
 
