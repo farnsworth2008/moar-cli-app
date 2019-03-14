@@ -8,55 +8,42 @@ import static moar.ansi.Ansi.purple;
 import static moar.ansi.Ansi.purpleBold;
 import static moar.sugar.Sugar.exec;
 import static moar.sugar.thread.MoarThreadSugar.$;
-import moar.ansi.StatusLine;
 
 public class PushCommand
     extends
     ModuleCommand {
 
-  private String doCommand(StatusLine status, String command) {
-    status.set(command);
-    try {
-      return command + "\n" + exec(command, dir).getOutput();
-    } finally {
-      status.completeOne();
+  private void doCommand(String command) {
+    exec(command, dir).getOutput();
+    synchronized (out) {
+      out.println(out);
     }
   }
 
   @Override
   void doModuleCommand(String[] args) {
-    var status = new StatusLine();
-    status.set("Push");
     $(async, futures, () -> {
-      return doCommand(status, "git push");
+      doCommand("git push");
     });
     for (var i = 2; i < args.length; i++) {
       String arg = args[i];
       if (arg.equals("master")) {
         $(async, futures, () -> {
-          return doCommand(status, "git push origin");
+          doCommand("git push origin");
         });
         $(async, futures, () -> {
-          return doCommand(status, "git push fork HEAD:master");
+          doCommand("git push fork HEAD:master");
         });
         $(async, futures, () -> {
-          return doCommand(status, "git push origin HEAD:master");
+          doCommand("git push origin HEAD:master");
         });
       } else {
         $(async, futures, () -> {
-          return doCommand(status, format("git push %s", arg));
+          doCommand(format("git push %s", arg));
         });
       }
     }
-    status.setCount(futures.size(), "push");
-    var results = $(futures);
-    status.setCount(0, "");
-    status.output(() -> {
-      for (var result : results) {
-        out.println(result.get());
-      }
-    });
-    status.remove();
+    $(futures);
   }
 
   @Override
