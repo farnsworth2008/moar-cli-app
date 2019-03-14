@@ -1,6 +1,7 @@
 package moar.cli;
 
 import static java.lang.Boolean.TRUE;
+import static java.lang.System.out;
 import static moar.ansi.Ansi.cyanBold;
 import static moar.ansi.Ansi.green;
 import static moar.ansi.Ansi.purple;
@@ -31,15 +32,13 @@ public class DetailCommand
 
   @Override
   void outHelp() {
-    status.output(out -> {
-      out.print(purpleBold(SCRIPT_NAME));
-      out.print(" ");
-      out.print(cyanBold(name));
-      out.print(" ");
-      out.println(purple("[<Module Filter RegEx>]"));
-      out.println(green("     /* Shows detail status. */"));
-      out.println();
-    });
+    out.print(purpleBold(SCRIPT_NAME));
+    out.print(" ");
+    out.print(cyanBold(name));
+    out.print(" ");
+    out.println(purple("[<Module Filter RegEx>]"));
+    out.println(green("     /* Shows detail status. */"));
+    out.println();
   }
 
 }

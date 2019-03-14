@@ -11,6 +11,7 @@ import static moar.sugar.thread.MoarThreadSugar.$;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import moar.ansi.StatusLine;
 import moar.sugar.MoarException;
 
 public abstract class InitBaseCommand
@@ -22,10 +23,12 @@ public abstract class InitBaseCommand
       moarModulesDir.mkdir();
     }
     var moduleDir = dir;
-    var moarModules = moarModulesDir.list((dir, name) -> name.startsWith("git-"));
-    for (var moarModule : moarModules) {
+    var modules = moarModulesDir.list((dir, name) -> name.startsWith("git-"));
+    var status = new StatusLine();
+    status.setCount(modules.length, format("%d modules", modules.length));
+    for (var module : modules) {
       $(async, futures, () -> {
-        var moarModuleName = moarModule.replaceAll("^git-", "");
+        var moarModuleName = module.replaceAll("^git-", "");
         File moduleRefFile = new File(moduleDir, moarModuleName);
         if (moduleRefFile.exists()) {
           exec(format("rm -rf %s", moarModuleName), moduleDir);
@@ -34,7 +37,7 @@ public abstract class InitBaseCommand
           }
         }
         File initFile = new File(moarModulesDir, "init-" + moarModuleName);
-        var moarModuleUrl = readStringFromFile(new File(moarModulesDir, moarModule)).strip();
+        var moarModuleUrl = readStringFromFile(new File(moarModulesDir, module)).strip();
         var init = nonNull(readStringFromFile(initFile), "").strip();
         StringBuilder builder = new StringBuilder();
         String cloneCommand = "git clone --recurse-submodules %s;";
@@ -61,7 +64,8 @@ public abstract class InitBaseCommand
         status.completeOne();
       });
     }
-    completeAsyncTasks(format("%d modules", moarModules.length));
+    $(futures);
+    status.remove();
   }
 
   protected void doInitCommand(String[] args, boolean nested) {
@@ -120,17 +124,17 @@ public abstract class InitBaseCommand
       }
       doAsyncExec("ln -s moar-sugar/gradle gradle;");
       doAsyncExec("ln -s moar-sugar/gradlew gradlew");
-      completeAsyncTasks("link");
+      $(futures);
       hasGradleWrapper = true;
     }
     if (hasGradleWrapper) {
       doAsyncExec("./gradlew cleanEclipse eclipse");
     }
-    completeAsyncTasks("gradle");
+    $(futures);
     if (new File(dir, "moar-setup.sh").exists()) {
       doAsyncExec("./moar-setup.sh");
     }
-    completeAsyncTasks("setup");
+    $(futures);
 
   }
 

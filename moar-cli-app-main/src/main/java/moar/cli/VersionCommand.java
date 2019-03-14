@@ -1,5 +1,6 @@
 package moar.cli;
 
+import static java.lang.System.out;
 import static moar.sugar.Sugar.nonNull;
 
 public class VersionCommand
@@ -14,9 +15,7 @@ public class VersionCommand
   @Override
   void doRun(String[] args) {
     String specificationVersion = VersionCommand.class.getPackage().getSpecificationVersion();
-    status.output(out -> {
-      out.println(nonNull(specificationVersion, "unknown"));
-    });
+    out.println(nonNull(specificationVersion, "unknown"));
   }
 
   @Override

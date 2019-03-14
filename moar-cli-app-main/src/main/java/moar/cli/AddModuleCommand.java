@@ -1,5 +1,6 @@
 package moar.cli;
 
+import static java.lang.System.out;
 import static moar.ansi.Ansi.cyanBold;
 import static moar.ansi.Ansi.green;
 import static moar.ansi.Ansi.purple;
@@ -16,15 +17,13 @@ public class AddModuleCommand
 
   @Override
   void outHelp() {
-    status.output(out -> {
-      out.print(purpleBold(SCRIPT_NAME));
-      out.print(" ");
-      out.print(cyanBold(name));
-      out.print(" ");
-      out.println(purple("<Git URL>"));
-      out.println(green("     /* Add a moar-module reference. */"));
-      out.println();
-    });
+    out.print(purpleBold(SCRIPT_NAME));
+    out.print(" ");
+    out.print(cyanBold(name));
+    out.print(" ");
+    out.println(purple("<Git URL>"));
+    out.println(green("     /* Add a moar-module reference. */"));
+    out.println();
   }
 
 }

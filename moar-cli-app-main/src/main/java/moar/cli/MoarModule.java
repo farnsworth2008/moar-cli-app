@@ -12,7 +12,7 @@ import moar.sugar.ExecuteResult;
 import moar.sugar.SafeResult;
 
 public class MoarModule {
-  private static final String GIT_LOG = "git log --no-color '--pretty=%h %aN %s' ";
+  private static final String GIT_LOG = "git log --reverse --no-color '--pretty=%h %aN %s' ";
   final File dir;
   private String upstreamBranch;
   private List<String> uncommitedFiles;

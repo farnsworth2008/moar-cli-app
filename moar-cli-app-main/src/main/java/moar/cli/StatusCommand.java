@@ -1,6 +1,7 @@
 package moar.cli;
 
 import static java.lang.Boolean.FALSE;
+import static java.lang.System.out;
 import static moar.ansi.Ansi.cyanBold;
 import static moar.ansi.Ansi.green;
 import static moar.ansi.Ansi.purple;
@@ -33,17 +34,15 @@ public class StatusCommand
 
   @Override
   void outHelp() {
-    status.output(out -> {
-      out.print(purpleBold(SCRIPT_NAME));
-      out.print(" ");
-      out.print(cyanBold(name));
-      out.print(" ");
-      out.println(purple("[<Module Filter RegEx>]"));
-      out.println(green("     /* Show status."));
-      out.println(green("      * "));
-      out.println(green("      * Example: moar status 'group-.*' */"));
-      out.println();
-    });
+    out.print(purpleBold(SCRIPT_NAME));
+    out.print(" ");
+    out.print(cyanBold(name));
+    out.print(" ");
+    out.println(purple("[<Module Filter RegEx>]"));
+    out.println(green("     /* Show status."));
+    out.println(green("      * "));
+    out.println(green("      * Example: moar status 'group-.*' */"));
+    out.println();
   }
 
 }

@@ -1,6 +1,7 @@
 package moar.cli;
 
 import static java.lang.String.format;
+import static java.lang.System.out;
 import static moar.ansi.Ansi.cyanBold;
 import static moar.ansi.Ansi.green;
 import static moar.ansi.Ansi.purple;
@@ -24,6 +25,7 @@ public class PushCommand
 
   @Override
   void doModuleCommand(String[] args) {
+    var status = new StatusLine();
     status.set("Push");
     $(async, futures, () -> {
       return doCommand(status, "git push");
@@ -49,34 +51,33 @@ public class PushCommand
     status.setCount(futures.size(), "push");
     var results = $(futures);
     status.setCount(0, "");
-    status.output(out -> {
+    status.output(() -> {
       for (var result : results) {
         out.println(result.get());
       }
     });
+    status.remove();
   }
 
   @Override
   void outHelp() {
-    status.output(out -> {
-      out.print(purpleBold(SCRIPT_NAME));
-      out.print(" ");
-      out.print(cyanBold(name));
-      out.print(" ");
-      out.println(purple("[<origin> | <master>]"));
-      out.println(green("     /* Push to upstream and optionally other remotes."));
-      out.println(green("      * "));
-      out.println(green("      * Push to the current upstream."));
-      out.println(green("      * Example: moar push"));
-      out.println(green("      * "));
-      out.println(green("      * Push to the current upstream, and origin."));
-      out.println(green("      * Example: moar push origin"));
-      out.println(green("      * "));
-      out.println(green("      * Push to the current upstream, origin, and origin"));
-      out.println(green("      * master."));
-      out.println(green("      * Example: moar push master */"));
-      out.println();
-    });
+    out.print(purpleBold(SCRIPT_NAME));
+    out.print(" ");
+    out.print(cyanBold(name));
+    out.print(" ");
+    out.println(purple("[<origin> | <master>]"));
+    out.println(green("     /* Push to upstream and optionally other remotes."));
+    out.println(green("      * "));
+    out.println(green("      * Push to the current upstream."));
+    out.println(green("      * Example: moar push"));
+    out.println(green("      * "));
+    out.println(green("      * Push to the current upstream, and origin."));
+    out.println(green("      * Example: moar push origin"));
+    out.println(green("      * "));
+    out.println(green("      * Push to the current upstream, origin, and origin"));
+    out.println(green("      * master."));
+    out.println(green("      * Example: moar push master */"));
+    out.println();
   }
 
 }

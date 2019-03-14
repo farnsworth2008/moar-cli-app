@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Vector;
 import java.util.concurrent.Future;
 import com.google.common.base.CaseFormat;
-import moar.ansi.StatusLine;
 import moar.sugar.MoarException;
 import moar.sugar.thread.MoarAsyncProvider;
 
@@ -80,8 +79,6 @@ public abstract class BaseCommand {
 
   final File dir = findModuleDir();
 
-  StatusLine status;
-
   final Vector<Future<Object>> futures = $();
 
   MoarAsyncProvider async;
@@ -99,16 +96,12 @@ public abstract class BaseCommand {
   }
 
   void completeAsyncTasks(String string) {
-    status.setCount(futures.size(), string);
     $(futures);
-    status.setCount(0, "");
   }
 
   void doAsyncExec(String command) {
-    status.set(command);
     $(async, futures, () -> {
       exec(command, findModuleDir());
-      status.completeOne();
     });
   }
 
@@ -152,9 +145,7 @@ public abstract class BaseCommand {
     setAsync(async);
     String command = args.length > 1 ? args[1] : "";
     if (accept(command)) {
-      setStatus(new StatusLine());
       doRun(args);
-      status.clear();
       return TRUE;
     }
     return FALSE;
@@ -162,10 +153,6 @@ public abstract class BaseCommand {
 
   public void setAsync(MoarAsyncProvider async) {
     this.async = async;
-  }
-
-  public void setStatus(StatusLine status) {
-    this.status = status;
   }
 
   final void verifyCurrentModuleExists() {
