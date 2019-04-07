@@ -96,7 +96,6 @@ public abstract class InitBaseCommand
     var hasMoarSugar = new File(dir, "moar-sugar").exists();
     var hasGradleWrapper = new File(dir, "gradlew").exists();
     var hasBuildGradle = new File(dir, "build.gradle").exists();
-    var hasGitIgnore = new File(dir, ".gitignore").exists();
     var hasLicense = new File(dir, "LICENSE").exists();
 
     if (hasMoarSugar && !hasGradleWrapper) {
@@ -111,13 +110,11 @@ public abstract class InitBaseCommand
         doAsyncExec("cp moar-sugar/template-build.gradle build.gradle");
         doAsyncExec(format(settingsGradleCmd, moduleName));
         if (!new File(dir.getAbsolutePath() + format("/%s-main/src/main/java", moduleName)).exists()) {
-          doAsyncExec(format(mkdirMainCmd, moduleName));
+          require(() -> doAsyncExec(format(mkdirMainCmd, moduleName)).get());
           doAsyncExec(format(buildMainGradleCmd, moduleName));
           doAsyncExec(format(buildMainJavaCmd, moduleName));
         }
-        if (!hasGitIgnore) {
-          doAsyncExec("cp moar-sugar/template.gitignore .gitignore;");
-        }
+        doAsyncExec("cp moar-sugar/template.gitignore .gitignore;");
         if (!hasLicense) {
           doAsyncExec("cp moar-sugar/LICENSE LICENSE;");
         }

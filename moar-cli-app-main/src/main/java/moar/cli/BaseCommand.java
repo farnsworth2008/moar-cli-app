@@ -99,8 +99,8 @@ public abstract class BaseCommand {
     $(futures);
   }
 
-  void doAsyncExec(String command) {
-    $(async, futures, () -> {
+  Future<Object> doAsyncExec(String command) {
+    return $(async, futures, () -> {
       exec(command, findModuleDir());
     });
   }
