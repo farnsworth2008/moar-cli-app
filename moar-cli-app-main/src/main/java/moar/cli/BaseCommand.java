@@ -34,7 +34,7 @@ public abstract class BaseCommand {
     return null;
   }
 
-  @SuppressWarnings({ "javadoc", "unchecked", "rawtypes" })
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   public static BaseCommand getCommand(Class clz) {
     return require(() -> {
       Constructor constructor = clz.getDeclaredConstructor(new Class<?>[] {});
