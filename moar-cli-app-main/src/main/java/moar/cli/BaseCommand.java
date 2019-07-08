@@ -3,7 +3,6 @@ package moar.cli;
 import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
-import static java.lang.System.getProperty;
 import static java.util.Collections.sort;
 import static moar.sugar.MoarStringUtil.readStringFromFile;
 import static moar.sugar.Sugar.exec;
@@ -23,14 +22,10 @@ import moar.sugar.thread.MoarAsyncProvider;
 public abstract class BaseCommand {
   protected static String SCRIPT_NAME = "MOAR";
   private static final File findModuleDir() {
-    var dir = new File(getProperty("user.dir"));
-    do {
-      if (new File(dir, ".git").isDirectory()) {
-        return dir;
-      }
-      File parentFile = dir.getParentFile();
-      dir = parentFile;
-    } while (dir.getParentFile() != null);
+    var dir = new File(".");
+    if (new File(dir, ".git").isDirectory()) {
+      return dir;
+    }
     return null;
   }
 
@@ -108,8 +103,7 @@ public abstract class BaseCommand {
   abstract void doRun(String[] args);
 
   private File findWorkspaceDir() {
-    var workspace = new File(getProperty("moar.workspace", getProperty("user.home") + "/moar-workspace"));
-    workspace.mkdirs();
+    var workspace = new File("..");
     return workspace;
   }
 
@@ -136,14 +130,21 @@ public abstract class BaseCommand {
   public String getName() {
     return name;
   }
+
   boolean includeInCommandNames() {
     return true;
   }
+
   abstract void outHelp();
 
   public final Boolean run(MoarAsyncProvider async, PrintStream out, String[] args) {
-    setAsync(async);
     String command = args.length > 1 ? args[1] : "help";
+    File moduleDir = findModuleDir();
+    if (moduleDir == null && !command.equals("help")) {
+      out.println("Please run this from a git module directory.");
+      return true;
+    }
+    setAsync(async);
     if (accept(command)) {
       doRun(args);
       return TRUE;
