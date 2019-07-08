@@ -7,7 +7,6 @@ import static moar.ansi.Ansi.green;
 import static moar.ansi.Ansi.purple;
 import static moar.ansi.Ansi.purpleBold;
 import static moar.sugar.Sugar.require;
-import static moar.sugar.thread.MoarThreadSugar.$;
 import java.util.Vector;
 import moar.ansi.StatusLine;
 import moar.sugar.ExecuteResult;
@@ -27,33 +26,27 @@ public class EachCommand
     var status = new StatusLine();
     status.setCount(modules.size(), format("Each: '%s' '%s'", command, filter));
     for (var module : modules) {
-      $(async, futures, () -> {
-        String name = module.getName();
-        boolean filterMatches = name.matches(filter);
-        boolean ignoreMatches = name.matches(ignore);
-        if (filterMatches && !ignoreMatches) {
-          SafeResult<ExecuteResult> result = module.execCommand(command);
-          String output = result.threw() ? result.thrown().getMessage() : result.get().getOutput();
-          after.add(() -> {
-            if (filterMatches && !ignoreMatches) {
-              if (!output.strip().isEmpty()) {
-                status.output(() -> {
-                  out.println(cyanBold(module.getName()));
-                  out.println(output);
-                  out.println();
-                });
-              }
-            }
-          });
-          status.completeOne();
-        }
-      });
+      String name = module.getName();
+      boolean filterMatches = name.matches(filter);
+      boolean ignoreMatches = name.matches(ignore);
+      if (filterMatches && !ignoreMatches) {
+        SafeResult<ExecuteResult> result = module.execCommand(command);
+        String output = result.threw() ? result.thrown().getMessage() : result.get().getOutput();
+        after.add(() -> {
+          if (filterMatches && !ignoreMatches) {
+            status.output(() -> {
+              out.println(cyanBold(module.getName()));
+              out.println(output);
+              out.println();
+            });
+          }
+        });
+        status.completeOne();
+      }
     }
-    $(futures);
     status.remove();
     if (command.equals("git remote update")) {
       StatusCommand statusCommand = new StatusCommand();
-      statusCommand.setAsync(async);
       statusCommand.doStatus(filter, false);
     } else {
       for (var task : after) {
