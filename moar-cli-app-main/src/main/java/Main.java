@@ -12,6 +12,10 @@ import moar.cli.HelpCommand;
 public class Main {
 
   public static void main(String[] args) throws Exception {
+    if (args.length == 0) {
+      String[] defaultArgs = { "help" };
+      args = defaultArgs;
+    }
     try (var async = $(100)) {
       Class[] commands = getCommandClasses();
       for (var commandClz : commands) {

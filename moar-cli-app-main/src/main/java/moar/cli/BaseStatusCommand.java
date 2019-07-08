@@ -15,7 +15,9 @@ import static moar.ansi.Ansi.green;
 import static moar.ansi.Ansi.purple;
 import static moar.ansi.Ansi.red;
 import static moar.sugar.MoarStringUtil.middleTruncate;
+import static moar.sugar.Sugar.require;
 import static moar.sugar.thread.MoarThreadSugar.$;
+import java.io.File;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Vector;
@@ -26,6 +28,7 @@ import moar.ansi.StatusLine;
 public abstract class BaseStatusCommand
     extends
     BaseCommand {
+  private final String currentPath = require(() -> new File(".").getCanonicalPath());
 
   protected void doStatus(String filter, Boolean detail) {
     var a = async;
@@ -97,7 +100,8 @@ public abstract class BaseStatusCommand
     Boolean priorEnabled = Ansi.enabled(ansi);
     try {
       var b = new StringBuilder();
-      if (module.getDir().equals(dir)) {
+      String modulePath = require(() -> module.getDir().getCanonicalPath());
+      if (modulePath.equals(currentPath)) {
         b.append(cyanBold(module.getName()));
       } else {
         b.append(module.getName());
