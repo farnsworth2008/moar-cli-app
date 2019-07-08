@@ -6,6 +6,8 @@ import static moar.ansi.Ansi.cyanBold;
 import static moar.ansi.Ansi.green;
 import static moar.ansi.Ansi.purple;
 import static moar.ansi.Ansi.purpleBold;
+import static moar.sugar.Sugar.require;
+import java.io.File;
 import moar.sugar.MoarException;
 
 public class DetailCommand
@@ -25,7 +27,9 @@ public class DetailCommand
       filter = arg;
     }
     if (filter.isEmpty()) {
-      filter = String.format("^%s$", dir.getName());
+      String path = require(() -> dir.getCanonicalPath());
+      String dirName = new File(path).getName();
+      filter = String.format("^%s$", dirName);
     }
     doStatus(filter, TRUE);
   }
