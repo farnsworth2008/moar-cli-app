@@ -1,16 +1,15 @@
 {
   "name": "moar-cli",
   "bin": {
-    "moar-json": "bin/moar-json",
     "moar": "bin/moar",
+    "moar-x": "bin/moar-x",
     "moar-cli-app-main.fat.jar": "bin/moar-cli-app-main.fat.jar"
   },
-  "version": "1.2.22",
+  "version": "1.2.23",
   "description": "Moar Module Managment for Git",
-  "main": "moar-json.js",
+  "main": "src/moar.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx babel src --out-dir lib"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -23,18 +22,18 @@
   },
   "homepage": "https://github.com/moar-stuff/moar-cli-app#README",
   "dependencies": {
-    "@babel/polyfill": "^7.2.5",
+    "@types/node": "^12.6.1",
     "babel-preset-env": "^1.7.0",
     "babel-register": "^6.26.0",
-    "really-relaxed-json": "^0.2.24"
+    "chalk": "^2.4.2",
+    "commander": "^2.20.0",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.3"
   },
   "devDependencies": {
-    "@babel/cli": "^7.2.3",
-    "@babel/core": "^7.3.3",
-    "@babel/plugin-transform-arrow-functions": "^7.2.0",
-    "@babel/preset-env": "^7.3.1"
+    "tslint": "^5.18.0"
   },
-  "directories": {
-    "lib": "lib"
+  "prettier": {
+    "singleQuote": true
   }
 }
