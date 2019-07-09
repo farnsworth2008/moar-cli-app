@@ -34,19 +34,17 @@ public abstract class BaseStatusCommand
     var a = async;
     var f = futures;
 
-    String ignore = getIgnoreRegEx();
     AtomicInteger maxLineLen = new AtomicInteger();
 
     var step1 = new Vector<Runnable>();
     var step2 = new Vector<Runnable>();
     var modules = getModules();
     var s = new StatusLine();
-    s.setCount(modules.size(), format("scan '%s'", filter));
+    s.setCount(getFilteredSize(filter), format("scan '%s'", filter));
     for (var module : modules) {
       String name = module.getName();
       boolean filterMatches = name.matches(filter);
-      boolean ignoreMatches = name.matches(ignore);
-      if (filterMatches && !ignoreMatches) {
+      if (filterMatches) {
         var m = module;
         $(a, f, () -> {
           m.getBranch();
@@ -99,7 +97,8 @@ public abstract class BaseStatusCommand
   private String getFormattedLine(MoarModule module, Boolean ansi, Integer padding) {
     Boolean priorEnabled = Ansi.enabled(ansi);
     try {
-      var b = new StringBuilder();
+      var moduleNumber = module.getModuleNumber();
+      var b = new StringBuilder(moduleNumber + ". ");
       String modulePath = require(() -> module.getDir().getCanonicalPath());
       if (modulePath.equals(currentPath)) {
         b.append(cyanBold(module.getName()));

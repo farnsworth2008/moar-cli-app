@@ -47,6 +47,11 @@ public class PushCommand
   }
 
   @Override
+  boolean includeInCommandNames() {
+    return false;
+  }
+
+  @Override
   void outHelp() {
     out.print(purpleBold(SCRIPT_NAME));
     out.print(" ");
