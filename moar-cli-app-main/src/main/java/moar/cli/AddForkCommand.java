@@ -31,15 +31,13 @@ public class AddForkCommand
         throw new MoarException("Unexpected Arg");
       }
     }
-    File forkConfigFile = new File(workspaceDir, ".fork");
-    if (fork.isEmpty()) {
-      fork = nonNull(readStringFromFile(forkConfigFile), "");
-    }
     if (fork.isEmpty()) {
       throw new MoarException("You must supply the GitHub account name for the fork.");
     }
-    if (!forkConfigFile.exists()) {
-      writeStringToFile(forkConfigFile, fork);
+    var forkParts = fork.split("/");
+    var lastForkPart = forkParts[forkParts.length - 1]; 
+    if(lastForkPart.startsWith("~")) {
+      fork += "/" + this.dir.getName() + ".git";
     }
     String remoteUpdateCommand = "git remote update";
     var command = format("git remote add fork git@github.com:%s/%s", fork, dir.getName());
