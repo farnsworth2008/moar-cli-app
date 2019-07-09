@@ -30,7 +30,9 @@ public class EachCommand
       boolean filterMatches = name.matches(filter);
       boolean ignoreMatches = name.matches(ignore);
       if (filterMatches && !ignoreMatches) {
+        status.set(command);
         SafeResult<ExecuteResult> result = module.execCommand(command);
+        status.set("");
         String output = result.threw() ? result.thrown().getMessage() : result.get().getOutput();
         after.add(() -> {
           if (filterMatches && !ignoreMatches) {
