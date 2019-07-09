@@ -4,15 +4,14 @@ import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.Collections.sort;
-import static moar.sugar.MoarStringUtil.readStringFromFile;
 import static moar.sugar.Sugar.exec;
-import static moar.sugar.Sugar.nonNull;
 import static moar.sugar.Sugar.require;
 import static moar.sugar.thread.MoarThreadSugar.$;
 import java.io.File;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Vector;
 import java.util.concurrent.Future;
 import com.google.common.base.CaseFormat;
@@ -107,20 +106,19 @@ public abstract class BaseCommand {
     return workspace;
   }
 
-  final String getIgnoreRegEx() {
-    var workspace = workspaceDir;
-    File ignoreFile = new File(workspace, ".ignore");
-    String ignore = nonNull(nonNull(readStringFromFile(ignoreFile), "").strip(), "^$");
-    return ignore;
+  String getModuleName() {
+    return new File(require(() -> dir.getCanonicalPath())).getName();
   }
 
   final ArrayList<MoarModule> getModules() {
     File workspace = workspaceDir;
     var modules = new ArrayList<MoarModule>();
     var dirs = workspace.listFiles(filter -> filter.isDirectory());
+    Arrays.sort(dirs);
+    var i = 0;
     for (var dir : dirs) {
       if (new File(dir, ".git").exists()) {
-        modules.add(new MoarModule(dir));
+        modules.add(new MoarModule(dir, ++i));
       }
     }
     sort(modules, (o1, o2) -> o1.dir.compareTo(o2.dir));
@@ -162,4 +160,17 @@ public abstract class BaseCommand {
       throw new MoarException("Could not find a \".git\" directory");
     }
   }
+
+  final int getFilteredSize(String filter) {
+    var filteredSize = 0;
+    for (var module : getModules()) {
+      String name = module.getName();
+      boolean filterMatches = name.matches(filter);
+      if (filterMatches) {
+        filteredSize++;
+      }
+    }
+    return filteredSize;
+  }
+
 }

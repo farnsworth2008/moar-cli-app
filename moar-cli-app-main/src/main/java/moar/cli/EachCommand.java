@@ -18,24 +18,22 @@ public class EachCommand
     BaseCommand {
 
   private void doEach(String filter, String command) throws Exception {
-    var modules = getModules();
-
-    String ignore = getIgnoreRegEx();
-
     var after = new Vector<Runnable>();
     var status = new StatusLine();
-    status.setCount(modules.size(), format("Each: '%s' '%s'", command, filter));
+    var filteredSize = getFilteredSize(filter);
+
+    var modules = getModules();
+    status.setCount(filteredSize, format("Each: '%s' '%s'", command, filter));
     for (var module : modules) {
       String name = module.getName();
       boolean filterMatches = name.matches(filter);
-      boolean ignoreMatches = name.matches(ignore);
-      if (filterMatches && !ignoreMatches) {
+      if (filterMatches) {
         status.set(command);
         SafeResult<ExecuteResult> result = module.execCommand(command);
         status.set("");
         String output = result.threw() ? result.thrown().getMessage() : result.get().getOutput();
         after.add(() -> {
-          if (filterMatches && !ignoreMatches) {
+          if (filterMatches) {
             status.output(() -> {
               out.println(cyanBold(module.getName()));
               out.println(output);
