@@ -1,5 +1,5 @@
-import program = require('commander');
-import _package = require('../package.json');
+import program from 'commander';
+import _package from './package.json';
 import { StatusCommand } from './StatusCommand';
 
 const commands = {
