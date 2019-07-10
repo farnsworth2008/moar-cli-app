@@ -136,7 +136,7 @@ public abstract class InitBaseCommand
   }
 
   @Override
-  protected boolean includeInCommandNames() {
+  boolean includeInCommandNames() {
     return true;
   }
 

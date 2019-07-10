@@ -22,9 +22,11 @@ public class MoarModule {
   private List<String> behindOriginCommits;
   private List<String> behindMasterCommits;
   private String branch;
+  private int moduleNumber;
 
-  public MoarModule(File dir) {
+  public MoarModule(File dir, int moduleNumber) {
     this.dir = dir;
+    this.moduleNumber = moduleNumber;
   }
 
   @Override
@@ -135,5 +137,9 @@ public class MoarModule {
   @Override
   public String toString() {
     return dir.toString();
+  }
+
+  public int getModuleNumber() {
+    return moduleNumber;
   }
 }

@@ -1,0 +1,6 @@
+#!/bin/bash
+workDir=`pwd`
+binDir="$( cd "$(dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+cd $binDir
+cd ../lib/node_modules/moar-cli
+src/moar.js --module-dir "$workDir" $@
