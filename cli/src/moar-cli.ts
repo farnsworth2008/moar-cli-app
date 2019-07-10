@@ -13,10 +13,10 @@ program
 program.command('status').action(commands.status.handler);
 
 let found = false;
-const args: string[] = process.argv.slice(2);
+const args: string[] = process.argv;
 for (let i = 2; i < args.length; i++) {
   const arg = args[i];
-  if (arg.startsWith('-')) {
+  if (arg.startsWith('-') && arg !== '-V' && arg !== '--version') {
     i++;
   } else {
     found = true;
@@ -26,5 +26,5 @@ for (let i = 2; i < args.length; i++) {
 if (!found) {
   program.outputHelp();
 } else {
-  program.parse(process.argv);
+  program.parse(args);
 }
