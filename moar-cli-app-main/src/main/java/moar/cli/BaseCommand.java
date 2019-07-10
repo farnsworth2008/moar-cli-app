@@ -3,6 +3,7 @@ package moar.cli;
 import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
+import static java.lang.System.out;
 import static java.util.Collections.sort;
 import static moar.sugar.Sugar.exec;
 import static moar.sugar.Sugar.require;
@@ -144,7 +145,9 @@ public abstract class BaseCommand {
     }
     setAsync(async);
     if (accept(command)) {
+      out.println();
       doRun(args);
+      out.println();
       return TRUE;
     }
     return FALSE;
