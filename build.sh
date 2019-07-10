@@ -9,5 +9,8 @@ mv moar-cli-app-main/build/libs/moar-cli-app-main.fat.jar cli/bin
 npm uninstall -g moar-cli
 cd cli
 echo "building moar-cli"
-npm install -g
-cd ..
+npm install 
+npm run build
+cd dist
+echo "installing moar-cl"
+npm install -g .
