@@ -28,7 +28,7 @@ public class EachCommand
       String name = module.getName();
       boolean filterMatches = name.matches(filter);
       if (filterMatches) {
-        status.set(command);
+        status.set(format("%s: %s", name, command));
         SafeResult<ExecuteResult> result = module.execCommand(command);
         status.set("");
         String output = result.threw() ? result.thrown().getMessage() : result.get().getOutput();
@@ -45,6 +45,7 @@ public class EachCommand
       }
     }
     status.remove();
+    out.println();
     if (command.equals("git remote update")) {
       StatusCommand statusCommand = new StatusCommand();
       statusCommand.doStatus(filter, false);
@@ -58,8 +59,10 @@ public class EachCommand
   @Override
   void doRun(String[] args) {
     require(() -> {
-      var filter = ".*";
-      var command = "git remote update";
+      var defaultFilter = ".*";
+      var defaultCommand = "git remote update";
+      var filter = defaultFilter;
+      var command = defaultCommand;
       var argNum = 0;
       for (var i = 2; i < args.length; i++) {
         String arg = args[i];
