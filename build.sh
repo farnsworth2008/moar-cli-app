@@ -11,6 +11,7 @@ cd cli
 echo "building moar-cli"
 npm install 
 npm run build
+cp README.md dist
 cd dist
 echo "installing moar-cl"
 npm install -g .
