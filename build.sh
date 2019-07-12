@@ -11,7 +11,8 @@ cd cli
 echo "building moar-cli"
 npm install 
 npm run build
-cp README.md dist
+cp README.md package-lock.json package.json dist
 cd dist
-echo "installing moar-cl"
+ln -s ../node_modules node_modules
+ln -s ../bin bin 
 npm install -g .

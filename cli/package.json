@@ -2,14 +2,14 @@
   "name": "moar-cli",
   "bin": {
     "moar": "bin/moar",
-    "moar-x": "bin/moar-x",
+    "moar-j": "bin/moar-j",
     "moar-cli-app-main.fat.jar": "bin/moar-cli-app-main.fat.jar"
   },
   "version": "1.3.3",
   "description": "Moar Module Managment for Git",
-  "main": "dist/moar-cli.js",
+  "main": "src/moar.js",
   "scripts": {
-    "build": "rimraf dist && mkdir dist && cp -r bin dist && tsc",
+    "build": "rimraf dist && mkdir dist && tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -25,7 +25,9 @@
   "dependencies": {
     "@types/node": "^12.6.1",
     "chalk": "^2.4.2",
-    "commander": "^2.20.0",
+    "command-line-args": "^5.1.1",
+    "command-line-usage": "^6.0.2",
+    "simple-git": "^1.120.0",
     "ts-node": "^8.3.0",
     "typescript": "^3.5.3"
   },

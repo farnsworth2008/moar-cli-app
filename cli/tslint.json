@@ -1,7 +1,7 @@
 {
   "linterOptions": {
     "exclude": [
-      "**/*.json"
+      "src/**/*.json"
     ]
   }
 }

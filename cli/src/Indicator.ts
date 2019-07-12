@@ -1,0 +1,54 @@
+import { Chalk } from 'chalk';
+import { IndicatorConfig } from './IndicatorConfig';
+export class Indicator {
+  private brackets = '';
+  private buffer = '';
+
+  constructor(private config?: IndicatorConfig) { }
+
+  pushArrowLine(size: number) {
+    this.buffer += ' ' + '─'.repeat(size) + '>';
+    return this;
+  }
+
+  pushLeftArrowLine(size: any) {
+    this.buffer += ' <' + '─'.repeat(size);
+    return this;
+  }
+
+  pushText(text: string, chalk?: Chalk) {
+    let formatter = this.getFormatter(chalk);
+    this.buffer += formatter(text);
+    return this;
+  }
+
+  push(indicator: string, count: number, chalk?: Chalk, force?: boolean) {
+    let formatter = this.getFormatter(chalk);
+    if (count > 0 || force) {
+      this.buffer += ' ';
+      const brackets = this.brackets;
+      if(brackets.length > 1) {
+        this.buffer += brackets.charAt(0);
+        this.brackets = brackets.charAt(1);
+      }
+      this.buffer += formatter(`${indicator}${count}`);
+    }
+    return this;
+  }
+
+  content() {
+    return this.buffer;
+  }
+
+  private getFormatter(chalk: Chalk | undefined): (text: string) => string {
+    if(chalk) {
+      return (text: string) => {
+        return chalk(text);
+      };
+    } else {
+      return (text: string) => {
+        return text;
+      };
+    }
+  }
+}
