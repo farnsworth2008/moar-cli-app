@@ -1,11 +1,11 @@
 {
   "name": "moar-cli",
+  "version": "1.3.5",
   "bin": {
     "moar": "bin/moar",
     "moar-j": "bin/moar-j",
     "moar-cli-app-main.fat.jar": "bin/moar-cli-app-main.fat.jar"
   },
-  "version": "1.3.4",
   "description": "Moar Module Managment for Git",
   "main": "src/moar.js",
   "scripts": {
