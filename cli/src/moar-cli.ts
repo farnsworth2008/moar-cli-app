@@ -1,5 +1,6 @@
 import chalk, { Chalk } from 'chalk';
 import { StatusCommand } from './StatusCommand';
+import { DescribeCommand } from './DescribeCommand';
 
 const commandLineArgs = require('command-line-args');
 const commandLineUsage = require('command-line-usage');
@@ -23,17 +24,19 @@ async function run() {
 
   const errors: string[] = [];
 
-  const command = mainOptions.command;
-  if (command === undefined || command === 'help') {
-    showHelp();
-  } else if (command === 'status') {
-    if (!process.env.MOAR_MODULE_DIR) {
-      errors.push('MOAR_MODULE_DIR must be defined');
-    } else {
-      await new StatusCommand(theme).run(errors);
-    }
+  if (!process.env.MOAR_MODULE_DIR) {
+    errors.push('MOAR_MODULE_DIR must be defined');
   } else {
-    errors.push(`Invalid Command: ${command}`);
+    const command = mainOptions.command;
+    if (command === undefined || command === 'help') {
+      showHelp();
+    } else if (command === 'status') {
+      await new StatusCommand(theme).run(errors);
+    } else if (command === 'describe') {
+      await new DescribeCommand(theme).run(errors);
+    } else {
+      errors.push(`Invalid Command: ${command}`);
+    }
   }
 
   if (errors.length) {

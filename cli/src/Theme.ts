@@ -1,6 +1,6 @@
 import { Chalk } from 'chalk';
 
-export interface WorkspaceTheme {
+export interface Theme {
   behindChalk: Chalk;
   uncommitedChalk: Chalk;
   unmergedChalk: Chalk;

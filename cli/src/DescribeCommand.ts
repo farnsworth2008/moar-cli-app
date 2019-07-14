@@ -1,143 +1,38 @@
-import program from 'commander';
-import * as fs from 'fs';
 import * as simpleGit from 'simple-git/promise';
-import * as path from 'path';
-import { ModuleDir } from './WorkspaceMemberDir';
-import { WorkspaceTheme } from './WorkspaceTheme';
+
+import { Theme } from './Theme';
+import { Command } from './Command';
+import { ModuleDir } from './ModuleDir';
+import { Indicator } from './Indicator';
 
 /**
- * A command to show status for the Workspace.
+ * A command to show a description for the module directory.
  */
-export class StatusCommand {
-  private moduleDir: string = <string>process.env.MOAR_MODULE_DIR;
-
-  constructor(private theme: WorkspaceTheme) {}
-
-  /**
-   * Calculate the length of the longest name.
-   */
-  private calcMaxNameLen(moduleDirs: ModuleDir[]) {
-    let maxLen = 0;
-    for (const moduleDir of moduleDirs) {
-      let len = moduleDir.nameAreaLen;
-      maxLen = len > maxLen ? len : maxLen;
-    }
-    return maxLen;
+export class DescribeCommand extends Command {
+  constructor(theme: Theme) {
+    super(theme);
   }
 
-  /**
-   * Calculate the length of the longest tracking label.
-   */
-  private calcMaxTrackingLen(moduleDirs: ModuleDir[], maxNameLen: number) {
-    let maxLen = 0;
-    for (const moduleDir of moduleDirs) {
-      moduleDir.getStatusLabel(maxNameLen);
-      let len = moduleDir.trackingAreaLen;
-      maxLen = len > maxLen ? len : maxLen;
-    }
-    return maxLen;
-  }
-
-  /**
-   * Calculate the length of the longest status label.
-   */
-  private calcMaxDevelopLen(moduleDirs: ModuleDir[], maxNameLen: number, maxTrackingLen: number) {
-    let maxLen = 0;
-    for (const moduleDir of moduleDirs) {
-      const trackingPushArrowSize = 1 + maxNameLen - moduleDir.nameAreaLen;
-      moduleDir.getStatusLabel(maxNameLen, trackingPushArrowSize);
-      const developPushArrowSize = 1 + maxTrackingLen - moduleDir.trackingAreaLen;
-      moduleDir.getStatusLabel(trackingPushArrowSize, developPushArrowSize);
-      const len = moduleDir.developAreaLen;
-      maxLen = len > maxLen ? len : maxLen;
-    }
-    return maxLen;
-  }
-
-  /**
-   * Calculate the length of the longest status label.
-   */
-  private calcMaxMasterLen(moduleDirs: ModuleDir[], maxNameLen: number, maxTrackingLen: number) {
-    let maxLen = 0;
-    for (const moduleDir of moduleDirs) {
-      const trackingPushArrowSize = 1 + maxNameLen - moduleDir.nameAreaLen;
-      moduleDir.getStatusLabel(maxNameLen, trackingPushArrowSize);
-      const developPushArrowSize = 1 + maxTrackingLen - moduleDir.trackingAreaLen;
-      moduleDir.getStatusLabel(trackingPushArrowSize, developPushArrowSize);
-      const len = 1 + moduleDir.masterAreaLen;
-      maxLen = len > maxLen ? len : maxLen;
-    }
-    return maxLen;
-  }
-
-  /**
-   * Calculate the length of the longest status label.
-   */
-  private calcMaxUnmergedLen(moduleDirs: ModuleDir[], maxNameLen: number, maxTrackingLen: number) {
-    let maxLen = 0;
-    for (const moduleDir of moduleDirs) {
-      const len = moduleDir.unmergedAreaLen;
-      maxLen = len > maxLen ? len : maxLen;
-    }
-    return maxLen;
-  }
-
-  /**
-   * Displays the Status for the Workspace
-   */
-  async run(errors: string[]): Promise<void> {
-    if (!fs.existsSync(this.moduleDir + '/.git')) {
-      errors.push(
-        'The status command must be run from the root of a GIT Module directory.'
-      );
-      return;
-    }
-    const workspaceDir = this.moduleDir.substring(
-      0,
-      this.moduleDir.lastIndexOf('/')
+  async run(errors: string[]) {
+    const gitModule = await simpleGit.default(this.moduleDir);
+    const dir = this.moduleDir.substring(this.moduleDir.lastIndexOf('/') + 1);
+    const moduleDir = new ModuleDir(
+      this.moduleDir,
+      dir,
+      gitModule,
+      this.theme
     );
-    const moduleDirs: ModuleDir[] = [];
-    const workspaceDirs = fs.readdirSync(workspaceDir);
-    for (const workspaceModuleDir of workspaceDirs) {
-      if (
-        fs.existsSync(workspaceDir + '/' + workspaceModuleDir + '/.git/config')
-      ) {
-        const gitModule = await simpleGit.default(workspaceDir + '/' + workspaceModuleDir);
-        const moduleDir = new ModuleDir(
-          this.moduleDir,
-          workspaceModuleDir,
-          gitModule,
-          this.theme
-        );
-        await moduleDir.prepare();
-        moduleDirs.push(moduleDir);
-      }
-    }
-    let maxNameLen = this.calcMaxNameLen(moduleDirs);
-    let maxTrackingLen = this.calcMaxTrackingLen(moduleDirs, maxNameLen);
-    let maxDevelopLen = this.calcMaxDevelopLen(moduleDirs, maxNameLen, maxTrackingLen);
-    let maxMasterLen = this.calcMaxMasterLen(moduleDirs, maxNameLen, maxTrackingLen);
-    let maxUnmergedLen = this.calcMaxUnmergedLen(moduleDirs, maxNameLen, maxTrackingLen);
-
-    const labelConfig = { color: true, size: maxDevelopLen };
-    for (const memberDir of moduleDirs) {
-      const nameLen = memberDir.nameAreaLen;
-      const trackingLen = memberDir.trackingAreaLen;
-      const developLen = memberDir.developAreaLen;
-      const masterLen = memberDir.masterAreaLen;
-      const unmergedLen = memberDir.unmergedAreaLen;
-      const trackingPushArrowSize = 1 + maxNameLen - nameLen;
-      const developPushArrowSize = 1 + maxTrackingLen - trackingLen;
-      const masterPushArrowSize = 1 + maxDevelopLen - developLen;
-      const unmergedPushArrowSize = (maxMasterLen - masterLen) + (maxUnmergedLen - unmergedLen);
-      const label = memberDir.getStatusLabel(
-        trackingPushArrowSize,
-        developPushArrowSize,
-        masterPushArrowSize,
-        unmergedPushArrowSize,
-        labelConfig
-      );
-      console.log(label.content());
-    }
+    await moduleDir.prepare();
+    const len = moduleDir.getStatusLabel().content.length;
+    const config = { color: true, size: len };
+    const label = moduleDir.getStatusLabel({config});
+    console.log(label.content);
+    console.log();
+    console.log(`Module Status (HEAD): ${moduleDir.pushHeadArea(new Indicator(config)).content}`);
+    console.log(`Tracking Status.....: ${moduleDir.pushTrackingArea(new Indicator(config)).content}`);
+    console.log(`Develop Status......: ${moduleDir.pushDevelopArea(new Indicator(config)).content}`);
+    console.log(`Master Status.......: ${moduleDir.pushMasterArea(new Indicator(config)).content}`);
+    console.log(`Unmerged Branches...: ${moduleDir.pushUnmergedArea(new Indicator(config)).content.trim()}`);
+    console.log();
   }
 }

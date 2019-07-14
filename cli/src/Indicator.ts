@@ -4,10 +4,10 @@ export class Indicator {
   private brackets = '';
   private buffer = '';
 
-  constructor(private config?: IndicatorConfig) { }
+  constructor(readonly config?: IndicatorConfig) { }
 
   pushArrowLine(size: number) {
-    this.buffer += ' ' + '─'.repeat(size) + '>';
+    this.buffer += ' ' + '─'.repeat(size) + '> ';
     return this;
   }
 
@@ -36,12 +36,12 @@ export class Indicator {
     return this;
   }
 
-  content() {
+  get content() {
     return this.buffer;
   }
 
   private getFormatter(chalk: Chalk | undefined): (text: string) => string {
-    if(chalk) {
+    if(this.config && chalk) {
       return (text: string) => {
         return chalk(text);
       };

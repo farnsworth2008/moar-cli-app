@@ -1,17 +1,12 @@
 import { default as chalk, Chalk } from 'chalk';
 import * as simpleGit from 'simple-git/promise';
-import { WorkspaceTheme } from './WorkspaceTheme';
+import { Theme } from './Theme';
 import { Indicator } from './Indicator';
 import { IndicatorConfig } from './IndicatorConfig';
-import {
-  ListLogSummary,
-  DefaultLogFields,
-  StatusResult
-} from 'simple-git/typings/response';
+import { StatusResult } from 'simple-git/typings/response';
 
 export class ModuleDir {
   readonly name: string;
-  private _trackingLabel = '';
   uncommited = 0;
   ahead = 0;
   behind = 0;
@@ -26,12 +21,13 @@ export class ModuleDir {
   goodTracking?: boolean;
   goodMaster?: boolean;
   goodDevelop?: boolean;
+  trackingLabel = '';
 
   constructor(
     private workspaceModuleDir: string,
     readonly dir: string,
     readonly gitModule: simpleGit.SimpleGit,
-    readonly theme: WorkspaceTheme
+    readonly theme: Theme
   ) {
     const workspaceModuleDirSplit = this.workspaceModuleDir.split('/');
     const name = dir
@@ -41,12 +37,15 @@ export class ModuleDir {
   }
 
   get trackingAreaLen(): number {
-    let len = this._trackingLabel.length;
+    let len = this.trackingLabel.length;
     if (this.trackingToDevelop) {
-      len += ' ▲'.length + this.trackingToDevelop.toString().length;
+      len += ` ▲${this.trackingToDevelop}`.length;
     }
     if (this.developToTracking) {
-      len += ' ▼'.length + this.developToTracking.toString().length;
+      len += ` ▼${this.developToTracking}`.length;
+    }
+    if (this.goodTracking !== true) {
+      len += this.sign(this.goodTracking).length;
     }
     return len;
   }
@@ -54,13 +53,16 @@ export class ModuleDir {
   get nameAreaLen(): number {
     let len = this.name.length;
     if (this.uncommited) {
-      len += ' ▶'.length + `${this.uncommited}`.length;
+      len += ` ▶${this.uncommited}`.length;
     }
     if (this.ahead) {
-      len += ' ▲'.length + `${this.ahead}`.length;
+      len += ` ▲${this.ahead}`.length;
     }
     if (this.behind) {
-      len += ' ▼'.length + `${this.behind}`.length;
+      len += ` ▼${this.behind}`.length;
+    }
+    if (this.goodHead !== true) {
+      len += this.sign(this.goodHead).length;
     }
     return len;
   }
@@ -86,7 +88,7 @@ export class ModuleDir {
   }
 
   get unmergedAreaLen(): number {
-    let len = `${this.unmergedBranchCount}`.length;
+    let len = ` ${this.unmergedBranchCount}`.length;
     return len;
   }
 
@@ -133,10 +135,8 @@ export class ModuleDir {
           : 0;
       } catch (e) {}
     }
-    this.goodHead = await this.verify('SHOW');
-    if (this.tracking) {
-      this.goodTracking = await this.verify(this.tracking);
-    }
+    this.goodHead = await this.verify('HEAD');
+    this.goodTracking = await this.verify(this.tracking);
     this.goodMaster = await this.verify('origin/master');
     this.goodDevelop = await this.verify('origin/develop');
     const branchSummary = await gitModule.branch(['-a', '--no-merged']);
@@ -152,6 +152,12 @@ export class ModuleDir {
       this.trackingToDevelop = 0;
       this.developToTracking = 0;
     }
+    let trackingLabel = this.tracking ? this.tracking.replace(/HEAD/, '') : '';
+    if (trackingLabel.match(/(develop|master)/)) {
+      trackingLabel = '';
+    }
+    trackingLabel = trackingLabel.replace(/.*\//, '');
+    this.trackingLabel = trackingLabel;
   }
 
   private async verify(id: string) {
@@ -192,77 +198,91 @@ export class ModuleDir {
    * information.  Colors used by default represet **uncommited** as **blue**,
    * **ahead** using **green**, and **behind** with **red**.
    */
-  getStatusLabel(
-    trackingPushArrowSize?: number,
-    developPushArrowSize?: number,
-    masterPushArrowSize?: number,
-    unmergedPushArrowSize?: number,
-    config?: IndicatorConfig
-  ) {
+  getStatusLabel({
+    trackingPushArrowSize,
+    developPushArrowSize,
+    masterPushArrowSize,
+    unmergedPushArrowSize,
+    config
+  }: {
+    trackingPushArrowSize?: number;
+    developPushArrowSize?: number;
+    masterPushArrowSize?: number;
+    unmergedPushArrowSize?: number;
+    config?: IndicatorConfig;
+  } = {}) {
     const theme = this.theme;
-    let name = this.name;
 
     let signChalk: Chalk | undefined;
     let textualChalk: Chalk | undefined;
-    let uncommitedChalk: Chalk | undefined;
-    let aheadChalk: Chalk | undefined;
-    let behindChalk: Chalk | undefined;
     let unmergedChalk: Chalk | undefined;
 
     if (config) {
-      textualChalk = this.workspaceModuleDir.endsWith(`/${name}`)
+      textualChalk = this.workspaceModuleDir.endsWith(`/${this.dir}`)
         ? chalk.bold
         : chalk.reset;
-      uncommitedChalk = theme.uncommitedChalk;
-      aheadChalk = theme.aheadChalk;
-      behindChalk = theme.behindChalk;
       unmergedChalk = theme.unmergedChalk;
       signChalk = theme.signChalk;
     }
 
-    let trackingLabel = this.tracking ? this.tracking.replace(/HEAD/, '') : '';
-    if (trackingLabel.match(/(develop|master)/)) {
-      trackingLabel = '';
-    }
-    trackingLabel = trackingLabel.replace(/.*\//, '');
-    this._trackingLabel = trackingLabel;
     trackingPushArrowSize = trackingPushArrowSize ? trackingPushArrowSize : 1;
     developPushArrowSize = developPushArrowSize ? developPushArrowSize : 1;
     masterPushArrowSize = masterPushArrowSize ? masterPushArrowSize : 1;
     unmergedPushArrowSize = unmergedPushArrowSize ? unmergedPushArrowSize : 1;
 
-    const sign = this.sign;
-    const goodDevelop = this.goodDevelop;
-    const goodMaster = this.goodMaster;
-
     const unmergedBranchCount = this.unmergedBranchCount;
 
-    return new Indicator(config)
-      .pushText(name, textualChalk)
-      .push('▶', this.uncommited, uncommitedChalk)
-      .push('▲', this.ahead, aheadChalk)
-      .push('▼', this.behind, behindChalk)
-      .pushArrowLine(trackingPushArrowSize)
-      .pushText(' ' + trackingLabel, textualChalk)
-      .pushText(sign(goodDevelop), signChalk)
-      .push('▲', this.developToTracking, aheadChalk)
-      .push('▼', this.trackingToDevelop, behindChalk)
-      .pushArrowLine(developPushArrowSize)
-      .pushText(' develop', textualChalk)
-      .pushText(sign(goodDevelop), signChalk)
-      .push('▲', this.masterToDevelop, aheadChalk)
-      .push('▼', this.developToMaster, behindChalk)
-      .pushArrowLine(masterPushArrowSize)
-      .pushText(' master', textualChalk)
-      .pushText(sign(goodMaster), signChalk)
-      .pushLeftArrowLine(unmergedPushArrowSize)
-      .push('', unmergedBranchCount, unmergedChalk, true);
+    const result = this.pushHeadArea(new Indicator(config), textualChalk);
+    result.pushArrowLine(trackingPushArrowSize);
+    this.pushTrackingArea(result, textualChalk);
+    result.pushArrowLine(developPushArrowSize);
+    this.pushDevelopArea(result, textualChalk);
+    result.pushArrowLine(masterPushArrowSize);
+    this.pushMasterArea(result, textualChalk);
+    result.pushLeftArrowLine(unmergedPushArrowSize);
+    this.pushUnmergedArea(result,textualChalk);
+    return result;
+  }
+
+  pushUnmergedArea(indicator: Indicator, _textualChalk?: Chalk) {
+    return indicator.push('ᚿ', this.unmergedBranchCount, this.theme.unmergedChalk, true);
+  }
+
+  pushMasterArea(indicator: Indicator, textualChalk?: Chalk) {
+    return indicator
+      .pushText('master', textualChalk)
+      .pushText(this.sign(this.goodMaster), this.theme.signChalk);
+  }
+
+  pushDevelopArea(indicator: Indicator, textualChalk?: Chalk) {
+    return indicator
+      .pushText('develop', textualChalk)
+      .pushText(this.sign(this.goodDevelop), this.theme.signChalk)
+      .push('▲', this.masterToDevelop, this.theme.aheadChalk)
+      .push('▼', this.developToMaster, this.theme.behindChalk);
+  }
+
+  pushHeadArea(indicator: Indicator, textualChalk?: Chalk) {
+    return indicator
+      .pushText(this.name, textualChalk)
+      .pushText(this.sign(this.goodHead), this.theme.signChalk)
+      .push('▶', this.uncommited, this.theme.uncommitedChalk)
+      .push('▲', this.ahead, this.theme.aheadChalk)
+      .push('▼', this.behind, this.theme.behindChalk);
+  }
+
+  pushTrackingArea(indicator: Indicator, textualChalk?: Chalk) {
+    return indicator
+      .pushText(this.trackingLabel, textualChalk)
+      .pushText(this.sign(this.goodTracking), this.theme.signChalk)
+      .push('▲', this.developToTracking, this.theme.aheadChalk)
+      .push('▼', this.trackingToDevelop, this.theme.behindChalk);
   }
 
   private sign(good: boolean | undefined) {
     if (good === true) {
       return '';
     }
-    return good === undefined ? '~' : '?';
+    return good === undefined ? '!' : '?';
   }
 }

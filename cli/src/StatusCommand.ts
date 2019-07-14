@@ -1,80 +1,21 @@
 import * as fs from 'fs';
 import * as simpleGit from 'simple-git/promise';
-import { ModuleDir } from './WorkspaceMemberDir';
-import { WorkspaceTheme } from './WorkspaceTheme';
+import { ModuleDir } from './ModuleDir';
+import { Theme } from './Theme';
+import { Command } from './Command';
 
 /**
  * A command to show status for the Workspace.
  */
-export class StatusCommand {
-  private moduleDir: string = <string>process.env.MOAR_MODULE_DIR;
-
-  constructor(private theme: WorkspaceTheme) {}
-
-  /**
-   * Calculate the length of the longest name.
-   */
-  private calcMaxNameLen(moduleDirs: ModuleDir[]) {
-    let maxLen = 0;
-    for (const moduleDir of moduleDirs) {
-      let len = moduleDir.nameAreaLen;
-      maxLen = len > maxLen ? len : maxLen;
-    }
-    return maxLen;
+export class StatusCommand extends Command {
+  constructor(theme: Theme) {
+    super(theme);
   }
 
-  /**
-   * Calculate the length of the longest tracking label.
-   */
-  private calcMaxTrackingLen(moduleDirs: ModuleDir[], maxNameLen: number) {
+  private maxLen(prop: string) {
     let maxLen = 0;
-    for (const moduleDir of moduleDirs) {
-      moduleDir.getStatusLabel(maxNameLen);
-      let len = moduleDir.trackingAreaLen;
-      maxLen = len > maxLen ? len : maxLen;
-    }
-    return maxLen;
-  }
-
-  /**
-   * Calculate the length of the longest status label.
-   */
-  private calcMaxDevelopLen(moduleDirs: ModuleDir[], maxNameLen: number, maxTrackingLen: number) {
-    let maxLen = 0;
-    for (const moduleDir of moduleDirs) {
-      const trackingPushArrowSize = 1 + maxNameLen - moduleDir.nameAreaLen;
-      moduleDir.getStatusLabel(maxNameLen, trackingPushArrowSize);
-      const developPushArrowSize = 1 + maxTrackingLen - moduleDir.trackingAreaLen;
-      moduleDir.getStatusLabel(trackingPushArrowSize, developPushArrowSize);
-      const len = moduleDir.developAreaLen;
-      maxLen = len > maxLen ? len : maxLen;
-    }
-    return maxLen;
-  }
-
-  /**
-   * Calculate the length of the longest status label.
-   */
-  private calcMaxMasterLen(moduleDirs: ModuleDir[], maxNameLen: number, maxTrackingLen: number) {
-    let maxLen = 0;
-    for (const moduleDir of moduleDirs) {
-      const trackingPushArrowSize = 1 + maxNameLen - moduleDir.nameAreaLen;
-      moduleDir.getStatusLabel(maxNameLen, trackingPushArrowSize);
-      const developPushArrowSize = 1 + maxTrackingLen - moduleDir.trackingAreaLen;
-      moduleDir.getStatusLabel(trackingPushArrowSize, developPushArrowSize);
-      const len = 1 + moduleDir.masterAreaLen;
-      maxLen = len > maxLen ? len : maxLen;
-    }
-    return maxLen;
-  }
-
-  /**
-   * Calculate the length of the longest status label.
-   */
-  private calcMaxUnmergedLen(moduleDirs: ModuleDir[], maxNameLen: number, maxTrackingLen: number) {
-    let maxLen = 0;
-    for (const moduleDir of moduleDirs) {
-      const len = moduleDir.unmergedAreaLen;
+    for (const moduleDir of this.moduleDirs) {
+      let len = (<any>moduleDir)[prop];
       maxLen = len > maxLen ? len : maxLen;
     }
     return maxLen;
@@ -84,23 +25,15 @@ export class StatusCommand {
    * Displays the Status for the Workspace
    */
   async run(errors: string[]): Promise<void> {
-    if (!fs.existsSync(this.moduleDir + '/.git')) {
-      errors.push(
-        'The status command must be run from the root of a GIT Module directory.'
-      );
-      return;
-    }
-    const workspaceDir = this.moduleDir.substring(
-      0,
-      this.moduleDir.lastIndexOf('/')
-    );
-    const moduleDirs: ModuleDir[] = [];
-    const workspaceDirs = fs.readdirSync(workspaceDir);
-    for (const workspaceModuleDir of workspaceDirs) {
+    for (const workspaceModuleDir of this.workspaceDirs) {
       if (
-        fs.existsSync(workspaceDir + '/' + workspaceModuleDir + '/.git/config')
+        fs.existsSync(
+          this.workspaceDir + '/' + workspaceModuleDir + '/.git/config'
+        )
       ) {
-        const gitModule = await simpleGit.default(workspaceDir + '/' + workspaceModuleDir);
+        const gitModule = await simpleGit.default(
+          this.workspaceDir + '/' + workspaceModuleDir
+        );
         const moduleDir = new ModuleDir(
           this.moduleDir,
           workspaceModuleDir,
@@ -108,17 +41,17 @@ export class StatusCommand {
           this.theme
         );
         await moduleDir.prepare();
-        moduleDirs.push(moduleDir);
+        this.moduleDirs.push(moduleDir);
       }
     }
-    let maxNameLen = this.calcMaxNameLen(moduleDirs);
-    let maxTrackingLen = this.calcMaxTrackingLen(moduleDirs, maxNameLen);
-    let maxDevelopLen = this.calcMaxDevelopLen(moduleDirs, maxNameLen, maxTrackingLen);
-    let maxMasterLen = this.calcMaxMasterLen(moduleDirs, maxNameLen, maxTrackingLen);
-    let maxUnmergedLen = this.calcMaxUnmergedLen(moduleDirs, maxNameLen, maxTrackingLen);
+    let maxNameLen = this.maxLen('nameAreaLen');
+    let maxTrackingLen = this.maxLen('trackingAreaLen');
+    let maxDevelopLen = this.maxLen('developAreaLen');
+    let maxMasterLen = this.maxLen('masterAreaLen');
+    let maxUnmergedLen = this.maxLen('unmergedAreaLen');
 
     const labelConfig = { color: true, size: maxDevelopLen };
-    for (const memberDir of moduleDirs) {
+    for (const memberDir of this.moduleDirs) {
       const nameLen = memberDir.nameAreaLen;
       const trackingLen = memberDir.trackingAreaLen;
       const developLen = memberDir.developAreaLen;
@@ -127,15 +60,16 @@ export class StatusCommand {
       const trackingPushArrowSize = 1 + maxNameLen - nameLen;
       const developPushArrowSize = 1 + maxTrackingLen - trackingLen;
       const masterPushArrowSize = 1 + maxDevelopLen - developLen;
-      const unmergedPushArrowSize = (maxMasterLen - masterLen) + (maxUnmergedLen - unmergedLen);
-      const label = memberDir.getStatusLabel(
+      const unmergedPushArrowSize =
+        1 + (maxMasterLen - masterLen) + (maxUnmergedLen - unmergedLen);
+      const label = memberDir.getStatusLabel({
         trackingPushArrowSize,
         developPushArrowSize,
         masterPushArrowSize,
         unmergedPushArrowSize,
-        labelConfig
-      );
-      console.log(label.content());
+        config: labelConfig
+      });
+      console.log(label.content);
     }
   }
 }
