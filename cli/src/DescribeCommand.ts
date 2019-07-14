@@ -29,7 +29,9 @@ export class DescribeCommand extends Command {
     console.log(label.content);
     console.log();
     console.log(`Module Status (HEAD): ${moduleDir.pushHeadArea(new Indicator(config)).content}`);
-    console.log(`Tracking Status.....: ${moduleDir.pushTrackingArea(new Indicator(config)).content}`);
+    if(moduleDir.trackingLabel !== '') {
+      console.log(`Tracking Status.....: ${moduleDir.pushTrackingArea(new Indicator(config)).content}`);
+    }
     console.log(`Develop Status......: ${moduleDir.pushDevelopArea(new Indicator(config)).content}`);
     console.log(`Master Status.......: ${moduleDir.pushMasterArea(new Indicator(config)).content}`);
     console.log(`Unmerged Branches...: ${moduleDir.pushUnmergedArea(new Indicator(config)).content.trim()}`);
