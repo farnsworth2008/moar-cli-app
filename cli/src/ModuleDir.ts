@@ -140,7 +140,11 @@ export class ModuleDir {
     this.goodMaster = await this.verify('origin/master');
     this.goodDevelop = await this.verify('origin/develop');
     const branchSummary = await gitModule.branch(['-a', '--no-merged']);
-    this.unmergedBranchCount = branchSummary.all.length;
+    let count = 0;
+    for(const branch of branchSummary.all) {
+      count += branch.startsWith('remotes/origin/') ? 1 : 0;
+    }
+    this.unmergedBranchCount = count;
     let status = this.status;
     this.uncommited = status ? status.files.length : 0;
     if (this.tracking) {
@@ -213,16 +217,12 @@ export class ModuleDir {
   } = {}) {
     const theme = this.theme;
 
-    let signChalk: Chalk | undefined;
     let textualChalk: Chalk | undefined;
-    let unmergedChalk: Chalk | undefined;
 
     if (config) {
       textualChalk = this.workspaceModuleDir.endsWith(`/${this.dir}`)
         ? chalk.bold
         : chalk.reset;
-      unmergedChalk = theme.unmergedChalk;
-      signChalk = theme.signChalk;
     }
 
     trackingPushArrowSize = trackingPushArrowSize ? trackingPushArrowSize : 1;
