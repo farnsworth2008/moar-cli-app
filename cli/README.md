@@ -2,7 +2,7 @@
 
 Module Mangement *and moar!*
 
-## Overview
+# Overview
 
 The **Moar CLI** tool manages multi-module builds without using traditional [Git Submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules).
 
@@ -12,7 +12,7 @@ With **Moar CLI**, multi-module builds are managed using modules that exist at t
 
 A developer with two libraries used by six applications the [Git Submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules) must manage eighteen repositories on their workstations.  Keepoing all the modules in sync with pulls and pushes can be quite a chore.  Using **Moar CLI** the environment is managed with only the eight top level modules.
 
-## Install
+# Install
 
 ```bash
 npm install -g moar-cli
@@ -20,8 +20,16 @@ npm install -g moar-cli
 
 If your system does not have Java 11 as the global default, you can define an environment variable of `MOAR_JAVA_HOME` pointing to a Java 11 environment for the `moar` command without altering your global Java setup.
 
-## Accessing Help
+# Accessing Help
+
+Help for the main `moar` is available from the tool.
 
 ```bash
 moar --help
+```
+
+Help for the legacy `moar-j` client is also via the tool.
+
+```bash
+moar-j --help
 ```

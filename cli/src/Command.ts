@@ -1,0 +1,24 @@
+import * as fs from 'fs';
+
+import { Theme } from './Theme';
+import { ModuleDir } from './ModuleDir';
+
+export class Command {
+  protected moduleDirs: ModuleDir[] = [];
+  protected moduleDir: string = <string>process.env.MOAR_MODULE_DIR;
+  protected workspaceDir: string;
+  protected workspaceDirs: string[];
+
+  constructor(protected theme: Theme) {
+    this.workspaceDir = this.moduleDir.substring(
+      0,
+      this.moduleDir.lastIndexOf('/')
+    );
+    this.workspaceDirs = fs.readdirSync(this.workspaceDir);
+  }
+
+
+  run(errors: string[]) {
+    errors.push('RUN NOT IMPLEMENTED');
+  }
+}
