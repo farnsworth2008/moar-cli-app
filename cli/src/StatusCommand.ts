@@ -25,6 +25,11 @@ export class StatusCommand extends Command {
    * Displays the Status for the Workspace
    */
   async run(errors: string[]): Promise<void> {
+    this.checkModuleDir(errors);
+    if(errors.length > 0) {
+      return;
+    }
+
     for (const workspaceModuleDir of this.workspaceDirs) {
       if (
         fs.existsSync(
