@@ -184,7 +184,7 @@ export class ModuleDir {
   private async prepareStatus() {
     try {
       this.status = await this.gitModule.status();
-      this.current = this.status.current;
+      this.current = this.status.current.replace(/.*\//, '');
     }
     catch (e) { }
   }
@@ -393,10 +393,10 @@ export class ModuleDir {
 
   pushHeadArea(indicator: Indicator, textualChalk?: Chalk) {
     return indicator
-      .pushText(this.name, textualChalk)
-      .pushText(' [', textualChalk)
       .pushText(this.current, textualChalk)
       .pushText(this.sign(this.goodHead), this.theme.signChalk)
+      .pushText(' [', textualChalk)
+      .pushText(this.name, textualChalk)
       .pushText(']', textualChalk)
       .push('▶', this.uncommited, this.theme.uncommitedChalk)
       .push('▲', this.ahead, this.theme.aheadChalk)
