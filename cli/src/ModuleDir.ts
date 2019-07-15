@@ -73,7 +73,7 @@ export class ModuleDir {
 
     const result = await this.gitModule.show(['--date=iso', '--name-only']);
     const lines = result.split('\n');
-    for(const line of lines) {
+    for (const line of lines) {
       if (line.startsWith('Date: ')) {
         this.headDate = line.replace(/^Date: /, '').trim();
       }
@@ -137,11 +137,8 @@ export class ModuleDir {
         from: 'origin/develop',
         to: this.tracking ? this.tracking : 'HEAD'
       });
-      this.developToTracking = developToTracking
-        ? developToTracking.total
-        : 0;
-    }
-    catch (e) { }
+      this.developToTracking = developToTracking ? developToTracking.total : 0;
+    } catch (e) {}
   }
 
   private async prepareDevelopToMaster() {
@@ -152,8 +149,7 @@ export class ModuleDir {
         to: 'origin/master'
       });
       this.developToMaster = developToMaster ? developToMaster.total : 0;
-    }
-    catch (e) { }
+    } catch (e) {}
   }
 
   private async prepareMasterToDevelop() {
@@ -164,8 +160,7 @@ export class ModuleDir {
         to: 'origin/develop'
       });
       this.masterToDevelop = masterToDevelop ? masterToDevelop.total : 0;
-    }
-    catch (e) { }
+    } catch (e) {}
   }
 
   private async prepareTracking() {
@@ -177,16 +172,14 @@ export class ModuleDir {
         to: 'origin/develop'
       });
       this.trackingToDevelop = trackingToDevelop ? trackingToDevelop.total : 0;
-    }
-    catch (e) { }
+    } catch (e) {}
   }
 
   private async prepareStatus() {
     try {
       this.status = await this.gitModule.status();
       this.current = this.status.current.replace(/.*\//, '');
-    }
-    catch (e) { }
+    } catch (e) {}
   }
 
   private async init() {
@@ -197,8 +190,7 @@ export class ModuleDir {
           .replace(/.*\@/, '')
           .trim()
           .toLowerCase();
-      }
-      catch (e) { }
+      } catch (e) {}
     }
   }
 
@@ -405,7 +397,10 @@ export class ModuleDir {
 
   pushTrackingArea(indicator: Indicator, textualChalk?: Chalk) {
     return indicator
-      .pushText(this.trackingLabel, textualChalk)
+      .pushText(
+        this.trackingLabel === this.current ? '' : this.trackingLabel,
+        textualChalk
+      )
       .pushText(this.sign(this.goodTracking), this.theme.signChalk)
       .push('▲', this.developToTracking, this.theme.aheadChalk)
       .push('▼', this.trackingToDevelop, this.theme.behindChalk);
