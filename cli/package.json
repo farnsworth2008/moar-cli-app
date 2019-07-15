@@ -1,6 +1,6 @@
 {
   "name": "moar-cli",
-  "version": "1.4.7",
+  "version": "1.4.8",
   "bin": {
     "moar": "bin/moar",
     "moar-j": "bin/moar-j",
