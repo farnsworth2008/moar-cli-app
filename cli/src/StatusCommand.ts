@@ -49,6 +49,14 @@ export class StatusCommand extends Command {
         this.moduleDirs.push(moduleDir);
       }
     }
+
+    this.moduleDirs.sort((a, b) => {
+      if(a.headDate === b.headDate) {
+        return 0;
+      }
+      return a.headDate > b.headDate ? 1 : -1;
+    });
+
     let maxNameLen = this.maxLen('nameAreaLen');
     let maxTrackingLen = this.maxLen('trackingAreaLen');
     let maxDevelopLen = this.maxLen('developAreaLen');
