@@ -73,7 +73,7 @@ export class ModuleDir {
 
     const result = await this.gitModule.show(['--date=iso', '--name-only']);
     const lines = result.split('\n');
-    for(const line of lines) {
+    for (const line of lines) {
       if (line.startsWith('Date: ')) {
         this.headDate = line.replace(/^Date: /, '').trim();
       }
@@ -126,6 +126,9 @@ export class ModuleDir {
     if (trackingLabel.match(/(develop|master)/)) {
       trackingLabel = '';
     }
+    if (trackingLabel === this.current) {
+      trackingLabel = '';
+    }
     trackingLabel = trackingLabel.replace(/.*\//, '');
     this.trackingLabel = trackingLabel;
   }
@@ -137,11 +140,8 @@ export class ModuleDir {
         from: 'origin/develop',
         to: this.tracking ? this.tracking : 'HEAD'
       });
-      this.developToTracking = developToTracking
-        ? developToTracking.total
-        : 0;
-    }
-    catch (e) { }
+      this.developToTracking = developToTracking ? developToTracking.total : 0;
+    } catch (e) {}
   }
 
   private async prepareDevelopToMaster() {
@@ -152,8 +152,7 @@ export class ModuleDir {
         to: 'origin/master'
       });
       this.developToMaster = developToMaster ? developToMaster.total : 0;
-    }
-    catch (e) { }
+    } catch (e) {}
   }
 
   private async prepareMasterToDevelop() {
@@ -164,8 +163,7 @@ export class ModuleDir {
         to: 'origin/develop'
       });
       this.masterToDevelop = masterToDevelop ? masterToDevelop.total : 0;
-    }
-    catch (e) { }
+    } catch (e) {}
   }
 
   private async prepareTracking() {
@@ -177,16 +175,14 @@ export class ModuleDir {
         to: 'origin/develop'
       });
       this.trackingToDevelop = trackingToDevelop ? trackingToDevelop.total : 0;
-    }
-    catch (e) { }
+    } catch (e) {}
   }
 
   private async prepareStatus() {
     try {
       this.status = await this.gitModule.status();
       this.current = this.status.current.replace(/.*\//, '');
-    }
-    catch (e) { }
+    } catch (e) {}
   }
 
   private async init() {
@@ -197,8 +193,7 @@ export class ModuleDir {
           .replace(/.*\@/, '')
           .trim()
           .toLowerCase();
-      }
-      catch (e) { }
+      } catch (e) {}
     }
   }
 
@@ -251,7 +246,10 @@ export class ModuleDir {
   }
 
   get nameAreaLen(): number {
-    let len = this.name.length;
+    let len = `${this.current} [${this.name}]`.length;
+    if (this.goodHead !== true) {
+      len += this.sign(this.goodHead).length;
+    }
     if (this.uncommited) {
       len += ` ▶${this.uncommited}`.length;
     }
@@ -260,9 +258,6 @@ export class ModuleDir {
     }
     if (this.behind) {
       len += ` ▼${this.behind}`.length;
-    }
-    if (this.goodHead !== true) {
-      len += this.sign(this.goodHead).length;
     }
     return len;
   }
