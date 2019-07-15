@@ -126,6 +126,9 @@ export class ModuleDir {
     if (trackingLabel.match(/(develop|master)/)) {
       trackingLabel = '';
     }
+    if (trackingLabel === this.current) {
+      trackingLabel = '';
+    }
     trackingLabel = trackingLabel.replace(/.*\//, '');
     this.trackingLabel = trackingLabel;
   }
@@ -243,7 +246,10 @@ export class ModuleDir {
   }
 
   get nameAreaLen(): number {
-    let len = this.name.length;
+    let len = `${this.current} [${this.name}]`.length;
+    if (this.goodHead !== true) {
+      len += this.sign(this.goodHead).length;
+    }
     if (this.uncommited) {
       len += ` ▶${this.uncommited}`.length;
     }
@@ -252,9 +258,6 @@ export class ModuleDir {
     }
     if (this.behind) {
       len += ` ▼${this.behind}`.length;
-    }
-    if (this.goodHead !== true) {
-      len += this.sign(this.goodHead).length;
     }
     return len;
   }
@@ -397,10 +400,7 @@ export class ModuleDir {
 
   pushTrackingArea(indicator: Indicator, textualChalk?: Chalk) {
     return indicator
-      .pushText(
-        this.trackingLabel === this.current ? '' : this.trackingLabel,
-        textualChalk
-      )
+      .pushText(this.trackingLabel, textualChalk)
       .pushText(this.sign(this.goodTracking), this.theme.signChalk)
       .push('▲', this.developToTracking, this.theme.aheadChalk)
       .push('▼', this.trackingToDevelop, this.theme.behindChalk);
