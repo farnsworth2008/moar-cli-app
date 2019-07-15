@@ -16,7 +16,7 @@ export class DescribeCommand extends Command {
 
   async run(errors: string[]) {
     this.checkModuleDir(errors);
-    if(errors.length > 0) {
+    if (errors.length > 0) {
       return;
     }
 
@@ -58,14 +58,14 @@ export class DescribeCommand extends Command {
           }`
         )
       );
+      this.showSignatureLine(moduleDir.goodTracking);
       console.log(`  * ${moduleDir.trackingRelativeArea}`);
+      this.showAheadBehind({
+        ahead: moduleDir.developToTracking,
+        behind: moduleDir.trackingToDevelop,
+        trackingLabel: 'develop'
+      });
     }
-    this.showSignatureLine(moduleDir.goodTracking);
-    this.showAheadBehind({
-      ahead: moduleDir.developToTracking,
-      behind: moduleDir.trackingToDevelop,
-      trackingLabel: 'develop'
-    });
     console.log(
       chalk.bold(
         `Develop Status......: ${
@@ -116,9 +116,9 @@ export class DescribeCommand extends Command {
     }
     if (behind) {
       console.log(
-        `  * Behind of '${chalk.bold(trackingLabel)}' by ${this.theme.behindChalk(
-          '' + behind
-        )} commits`
+        `  * Behind of '${chalk.bold(
+          trackingLabel
+        )}' by ${this.theme.behindChalk('' + behind)} commits`
       );
     }
   }
