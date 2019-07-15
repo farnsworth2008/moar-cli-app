@@ -31,6 +31,8 @@ export class ModuleDir {
   developRelative = '';
   masterAuthor = '';
   masterRelative = '';
+  prepareError?: any;
+  headDate = '';
 
   constructor(
     private workspaceModuleDir: string,
@@ -49,83 +51,60 @@ export class ModuleDir {
    * Prepare the module
    */
   async prepare() {
-    const gitModule = this.gitModule;
-    gitModule.silent(true);
-    if (ModuleDir.domain == undefined) {
-      const result = await gitModule.raw(['config', 'user.email']);
-      ModuleDir.domain = result
-        .replace(/.*\@/, '')
-        .trim()
-        .toLowerCase();
+    try {
+      await this.doPrepare();
+    } catch (e) {
+      this.prepareError = e;
     }
-    this.status = await gitModule.status();
-    this.tracking = this.status.tracking;
-    try {
-      const trackingToDevelop = await gitModule.log({
-        symmetric: false,
-        from: this.tracking ? this.tracking : 'HEAD',
-        to: 'origin/develop'
-      });
-      this.trackingToDevelop = trackingToDevelop ? trackingToDevelop.total : 0;
-    } catch (e) {}
+  }
 
-    try {
-      const masterToDevelop = await gitModule.log({
-        symmetric: false,
-        from: 'origin/master',
-        to: 'origin/develop'
-      });
-      this.masterToDevelop = masterToDevelop ? masterToDevelop.total : 0;
-    } catch (e) {}
+  private async doPrepare() {
+    this.gitModule.silent(true);
+    await this.init();
+    await this.prepareStatus();
+    await this.prepareTracking();
+    await this.prepareMasterToDevelop();
 
     if (this.tracking !== 'origin/master') {
-      try {
-        const developToMaster = await gitModule.log({
-          symmetric: false,
-          from: 'origin/develop',
-          to: 'origin/master'
-        });
-        this.developToMaster = developToMaster ? developToMaster.total : 0;
-      } catch (e) {}
-      try {
-        const developToTracking = await gitModule.log({
-          symmetric: false,
-          from: 'origin/develop',
-          to: this.tracking ? this.tracking : 'HEAD'
-        });
-        this.developToTracking = developToTracking
-          ? developToTracking.total
-          : 0;
-      } catch (e) {}
+      await this.prepareDevelopToMaster();
+      await this.prepareDevelopToTracking();
     }
 
-    const headShow = await this.show('HEAD');
-    const trackingShow = await this.show(this.tracking);
-    const masterShow = await this.show('origin/master');
-    const developShow = await this.show('origin/develop');
+    const result = await this.gitModule.show(['--date=iso', '--name-only']);
+    const lines = result.split('\n');
+    for(const line of lines) {
+      if (line.startsWith('Date: ')) {
+        this.headDate = line.replace(/^Date: /, '').trim();
+      }
+    }
 
-    const headRelative = this.parseAuthorAndRelative(headShow);
+    const headShowRelative = await this.showRelative('HEAD');
+    const trackingShowRelative = await this.showRelative(this.tracking);
+    const developShowRelative = await this.showRelative('origin/develop');
+    const masterShowRelative = await this.showRelative('origin/master');
+
+    const headRelative = this.parseAuthorAndRelative(headShowRelative);
     this.headAuthor = headRelative.author;
     this.headRelative = headRelative.relative;
 
-    const trackingRelative = this.parseAuthorAndRelative(trackingShow);
+    const trackingRelative = this.parseAuthorAndRelative(trackingShowRelative);
     this.trackingAuthor = trackingRelative.author;
     this.trackingRelative = trackingRelative.relative;
 
-    const developRelative = this.parseAuthorAndRelative(developShow);
+    const developRelative = this.parseAuthorAndRelative(developShowRelative);
     this.developAuthor = developRelative.author;
     this.developRelative = developRelative.relative;
 
-    const masterRelative = this.parseAuthorAndRelative(masterShow);
+    const masterRelative = this.parseAuthorAndRelative(masterShowRelative);
     this.masterAuthor = masterRelative.author;
     this.masterRelative = masterRelative.relative;
 
-    this.goodHead = headShow.good;
-    this.goodTracking = trackingShow.good;
-    this.goodMaster = masterShow.good;
-    this.goodDevelop = developShow.good;
+    this.goodHead = headShowRelative.good;
+    this.goodTracking = trackingShowRelative.good;
+    this.goodMaster = masterShowRelative.good;
+    this.goodDevelop = developShowRelative.good;
 
-    const branchSummary = await gitModule.branch(['-a', '--no-merged']);
+    const branchSummary = await this.gitModule.branch(['-a', '--no-merged']);
     let count = 0;
     for (const branch of branchSummary.all) {
       count += branch.startsWith('remotes/origin/') ? 1 : 0;
@@ -150,6 +129,77 @@ export class ModuleDir {
     this.trackingLabel = trackingLabel;
   }
 
+  private async prepareDevelopToTracking() {
+    try {
+      const developToTracking = await this.gitModule.log({
+        symmetric: false,
+        from: 'origin/develop',
+        to: this.tracking ? this.tracking : 'HEAD'
+      });
+      this.developToTracking = developToTracking
+        ? developToTracking.total
+        : 0;
+    }
+    catch (e) { }
+  }
+
+  private async prepareDevelopToMaster() {
+    try {
+      const developToMaster = await this.gitModule.log({
+        symmetric: false,
+        from: 'origin/develop',
+        to: 'origin/master'
+      });
+      this.developToMaster = developToMaster ? developToMaster.total : 0;
+    }
+    catch (e) { }
+  }
+
+  private async prepareMasterToDevelop() {
+    try {
+      const masterToDevelop = await this.gitModule.log({
+        symmetric: false,
+        from: 'origin/master',
+        to: 'origin/develop'
+      });
+      this.masterToDevelop = masterToDevelop ? masterToDevelop.total : 0;
+    }
+    catch (e) { }
+  }
+
+  private async prepareTracking() {
+    this.tracking = this.status ? this.status.tracking : undefined;
+    try {
+      const trackingToDevelop = await this.gitModule.log({
+        symmetric: false,
+        from: this.tracking ? this.tracking : 'HEAD',
+        to: 'origin/develop'
+      });
+      this.trackingToDevelop = trackingToDevelop ? trackingToDevelop.total : 0;
+    }
+    catch (e) { }
+  }
+
+  private async prepareStatus() {
+    try {
+      this.status = await this.gitModule.status();
+    }
+    catch (e) { }
+  }
+
+  private async init() {
+    if (ModuleDir.domain == undefined) {
+      try {
+        const result = await this.gitModule.raw(['config', 'user.email']);
+        ModuleDir.domain = result
+          .replace(/.*\@/, '')
+          .trim()
+          .toLowerCase();
+      }
+      catch (e) { }
+    }
+  }
+
   private parseAuthorAndRelative(headShow: {
     good?: boolean | undefined;
     result?: string | undefined;
@@ -167,6 +217,10 @@ export class ModuleDir {
               author.length - ModuleDir.domain.length - 1
             );
           }
+        }
+        const shortendAuthor = author.replace(/[\.-\@\+].*/, '');
+        if (author !== shortendAuthor) {
+          author = shortendAuthor + '...';
         }
         break;
       }
@@ -236,11 +290,17 @@ export class ModuleDir {
     return len;
   }
 
-  private async show(id: string): Promise<{ good?: boolean; result?: string }> {
+  private async showRelative(
+    id?: string
+  ): Promise<{ good?: boolean; result?: string }> {
+    if (id === undefined) {
+      return { good: undefined, result: undefined };
+    }
     try {
       const result = await this.gitModule.show([
         id,
         '--show-signature',
+        '--name-only',
         '--date=relative'
       ]);
       if (result.indexOf('gpg: Good signature from') >= 0) {
@@ -292,8 +352,6 @@ export class ModuleDir {
     unmergedPushArrowSize?: number;
     config?: IndicatorConfig;
   } = {}) {
-    const theme = this.theme;
-
     let textualChalk: Chalk | undefined;
 
     if (config) {
@@ -306,8 +364,6 @@ export class ModuleDir {
     developPushArrowSize = developPushArrowSize ? developPushArrowSize : 1;
     masterPushArrowSize = masterPushArrowSize ? masterPushArrowSize : 1;
     unmergedPushArrowSize = unmergedPushArrowSize ? unmergedPushArrowSize : 1;
-
-    const unmergedBranchCount = this.unmergedBranchCount;
 
     const result = this.pushHeadArea(new Indicator(config), textualChalk);
     result.pushArrowLine(trackingPushArrowSize);
@@ -325,6 +381,9 @@ export class ModuleDir {
           : this.headRelativeArea
       }`
     );
+    if (this.prepareError) {
+      result.pushText('ERROR', chalk.redBright);
+    }
     return result;
   }
 
