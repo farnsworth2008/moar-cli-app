@@ -30,6 +30,8 @@ moar --help
 
 Help for the legacy `moar-j` client is also via the tool.
 
+The java version will be deprecated in a future release.
+
 ```bash
 moar-j --help
 ```
