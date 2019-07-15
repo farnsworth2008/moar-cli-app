@@ -15,6 +15,11 @@ export class DescribeCommand extends Command {
   }
 
   async run(errors: string[]) {
+    this.checkModuleDir(errors);
+    if(errors.length > 0) {
+      return;
+    }
+
     const gitModule = await simpleGit.default(this.moduleDir);
     const dir = this.moduleDir.substring(this.moduleDir.lastIndexOf('/') + 1);
     const moduleDir = new ModuleDir(this.moduleDir, dir, gitModule, this.theme);

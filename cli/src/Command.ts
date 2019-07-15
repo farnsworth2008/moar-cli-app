@@ -21,4 +21,10 @@ export class Command {
   run(errors: string[]) {
     errors.push('RUN NOT IMPLEMENTED');
   }
+
+  protected checkModuleDir(errors: string[]) {
+    if (!fs.existsSync(this.moduleDir + '/.git/config')) {
+      errors.push('Status command must be run from a git module root');
+    }
+  }
 }
