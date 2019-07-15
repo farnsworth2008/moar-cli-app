@@ -33,6 +33,7 @@ export class ModuleDir {
   masterRelative = '';
   prepareError?: any;
   headDate = '';
+  current = '';
 
   constructor(
     private workspaceModuleDir: string,
@@ -183,6 +184,7 @@ export class ModuleDir {
   private async prepareStatus() {
     try {
       this.status = await this.gitModule.status();
+      this.current = this.status.current;
     }
     catch (e) { }
   }
@@ -317,27 +319,6 @@ export class ModuleDir {
 
   /**
    * Output the status label for a workspace member directory
-   *
-   * The following are examples:
-   * 1. `one ▶1 ▲2 ▼3 ─> XX-004 ▲5 ▼6 ─> develop ▲7 ▼8 ─> master~ <── 9`
-   * 2. `two ▶10 ──────> XX-011 ───────> develop? ──────> master <── 12`
-   * 3. `three ────────> XX-013~ ──────> develop ───────> master <─ ▲14`
-   *
-   * In the example, the `one` module shows `▶1` uncommited change, `▲2`
-   * commits ahead and `▼3` behind the `XX-004`  tracking branch is
-   * `(▲5 ▼6)` relative `origin/develop` with `origin/develop` `[▼8]`
-   * relative to `origin/master`.  There are `9` branches with unmerged
-   * changes.
-   *
-   * The n
-   *
-   * The `->` section expands as required to reach the targeted size.
-   * Indicators with zero value are suppressed.
-   *
-   * The result is plain or formatted to the specified size with the option of
-   * color coding based on a theme to help users quickly comprehend the
-   * information.  Colors used by default represet **uncommited** as **blue**,
-   * **ahead** using **green**, and **behind** with **red**.
    */
   getStatusLabel({
     trackingPushArrowSize,
@@ -413,7 +394,10 @@ export class ModuleDir {
   pushHeadArea(indicator: Indicator, textualChalk?: Chalk) {
     return indicator
       .pushText(this.name, textualChalk)
+      .pushText(' [', textualChalk)
+      .pushText(this.current, textualChalk)
       .pushText(this.sign(this.goodHead), this.theme.signChalk)
+      .pushText(']', textualChalk)
       .push('▶', this.uncommited, this.theme.uncommitedChalk)
       .push('▲', this.ahead, this.theme.aheadChalk)
       .push('▼', this.behind, this.theme.behindChalk);
