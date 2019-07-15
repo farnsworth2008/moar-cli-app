@@ -6,6 +6,7 @@ import { IndicatorConfig } from './IndicatorConfig';
 import { StatusResult } from 'simple-git/typings/response';
 
 export class ModuleDir {
+  static domain?: string;
   readonly name: string;
   uncommited = 0;
   ahead = 0;
@@ -22,6 +23,14 @@ export class ModuleDir {
   goodMaster?: boolean;
   goodDevelop?: boolean;
   trackingLabel = '';
+  headAuthor = '';
+  headRelative = '';
+  trackingAuthor = '';
+  trackingRelative = '';
+  developAuthor = '';
+  developRelative = '';
+  masterAuthor = '';
+  masterRelative = '';
 
   constructor(
     private workspaceModuleDir: string,
@@ -34,6 +43,141 @@ export class ModuleDir {
       .substring(dir.lastIndexOf('/') + 1)
       .replace(workspaceModuleDirSplit[workspaceModuleDirSplit.length - 2], '');
     this.name = name;
+  }
+
+  /**
+   * Prepare the module
+   */
+  async prepare() {
+    const gitModule = this.gitModule;
+    gitModule.silent(true);
+    if (ModuleDir.domain == undefined) {
+      const result = await gitModule.raw(['config', 'user.email']);
+      ModuleDir.domain = result
+        .replace(/.*\@/, '')
+        .trim()
+        .toLowerCase();
+    }
+    this.status = await gitModule.status();
+    this.tracking = this.status.tracking;
+    try {
+      const trackingToDevelop = await gitModule.log({
+        symmetric: false,
+        from: this.tracking ? this.tracking : 'HEAD',
+        to: 'origin/develop'
+      });
+      this.trackingToDevelop = trackingToDevelop ? trackingToDevelop.total : 0;
+    } catch (e) {}
+
+    try {
+      const masterToDevelop = await gitModule.log({
+        symmetric: false,
+        from: 'origin/master',
+        to: 'origin/develop'
+      });
+      this.masterToDevelop = masterToDevelop ? masterToDevelop.total : 0;
+    } catch (e) {}
+
+    if (this.tracking !== 'origin/master') {
+      try {
+        const developToMaster = await gitModule.log({
+          symmetric: false,
+          from: 'origin/develop',
+          to: 'origin/master'
+        });
+        this.developToMaster = developToMaster ? developToMaster.total : 0;
+      } catch (e) {}
+      try {
+        const developToTracking = await gitModule.log({
+          symmetric: false,
+          from: 'origin/develop',
+          to: this.tracking ? this.tracking : 'HEAD'
+        });
+        this.developToTracking = developToTracking
+          ? developToTracking.total
+          : 0;
+      } catch (e) {}
+    }
+
+    const headShow = await this.show('HEAD');
+    const trackingShow = await this.show(this.tracking);
+    const masterShow = await this.show('origin/master');
+    const developShow = await this.show('origin/develop');
+
+    const headRelative = this.parseAuthorAndRelative(headShow);
+    this.headAuthor = headRelative.author;
+    this.headRelative = headRelative.relative;
+
+    const trackingRelative = this.parseAuthorAndRelative(trackingShow);
+    this.trackingAuthor = trackingRelative.author;
+    this.trackingRelative = trackingRelative.relative;
+
+    const developRelative = this.parseAuthorAndRelative(developShow);
+    this.developAuthor = developRelative.author;
+    this.developRelative = developRelative.relative;
+
+    const masterRelative = this.parseAuthorAndRelative(masterShow);
+    this.masterAuthor = masterRelative.author;
+    this.masterRelative = masterRelative.relative;
+
+    this.goodHead = headShow.good;
+    this.goodTracking = trackingShow.good;
+    this.goodMaster = masterShow.good;
+    this.goodDevelop = developShow.good;
+
+    const branchSummary = await gitModule.branch(['-a', '--no-merged']);
+    let count = 0;
+    for (const branch of branchSummary.all) {
+      count += branch.startsWith('remotes/origin/') ? 1 : 0;
+    }
+    this.unmergedBranchCount = count;
+    let status = this.status;
+    this.uncommited = status ? status.files.length : 0;
+    if (this.tracking) {
+      this.ahead = status ? status.ahead : 0;
+      this.behind = status ? status.behind : 0;
+    } else {
+      this.ahead = this.developToTracking;
+      this.behind = this.trackingToDevelop;
+      this.trackingToDevelop = 0;
+      this.developToTracking = 0;
+    }
+    let trackingLabel = this.tracking ? this.tracking.replace(/HEAD/, '') : '';
+    if (trackingLabel.match(/(develop|master)/)) {
+      trackingLabel = '';
+    }
+    trackingLabel = trackingLabel.replace(/.*\//, '');
+    this.trackingLabel = trackingLabel;
+  }
+
+  private parseAuthorAndRelative(headShow: {
+    good?: boolean | undefined;
+    result?: string | undefined;
+  }): { author: string; relative: string } {
+    let author = '';
+    let relative = '';
+    const lines = headShow.result ? headShow.result.split('\n') : [];
+    for (const line of lines) {
+      if (line.startsWith('Author:')) {
+        author = line.replace(/.*</, '').replace(/>.*/, '');
+        if (ModuleDir.domain) {
+          if (author.toLowerCase().endsWith(ModuleDir.domain)) {
+            author = author.substring(
+              0,
+              author.length - ModuleDir.domain.length - 1
+            );
+          }
+        }
+        break;
+      }
+    }
+    for (const line of lines) {
+      if (line.startsWith('Date:')) {
+        relative = line.replace('Date: ', '').trim();
+        break;
+      }
+    }
+    return { author, relative };
   }
 
   get trackingAreaLen(): number {
@@ -92,90 +236,23 @@ export class ModuleDir {
     return len;
   }
 
-  async prepare() {
-    const gitModule = this.gitModule;
-    gitModule.silent(true);
-    this.status = await gitModule.status();
-    this.tracking = this.status.tracking;
+  private async show(id: string): Promise<{ good?: boolean; result?: string }> {
     try {
-      const trackingToDevelop = await gitModule.log({
-        symmetric: false,
-        from: this.tracking ? this.tracking : 'HEAD',
-        to: 'origin/develop'
-      });
-      this.trackingToDevelop = trackingToDevelop ? trackingToDevelop.total : 0;
-    } catch (e) {}
-
-    try {
-      const masterToDevelop = await gitModule.log({
-        symmetric: false,
-        from: 'origin/master',
-        to: 'origin/develop'
-      });
-      this.masterToDevelop = masterToDevelop ? masterToDevelop.total : 0;
-    } catch (e) {}
-
-    if (this.tracking !== 'origin/master') {
-      try {
-        const developToMaster = await gitModule.log({
-          symmetric: false,
-          from: 'origin/develop',
-          to: 'origin/master'
-        });
-        this.developToMaster = developToMaster ? developToMaster.total : 0;
-      } catch (e) {}
-      try {
-        const developToTracking = await gitModule.log({
-          symmetric: false,
-          from: 'origin/develop',
-          to: this.tracking ? this.tracking : 'HEAD'
-        });
-        this.developToTracking = developToTracking
-          ? developToTracking.total
-          : 0;
-      } catch (e) {}
-    }
-    this.goodHead = await this.verify('HEAD');
-    this.goodTracking = await this.verify(this.tracking);
-    this.goodMaster = await this.verify('origin/master');
-    this.goodDevelop = await this.verify('origin/develop');
-    const branchSummary = await gitModule.branch(['-a', '--no-merged']);
-    let count = 0;
-    for(const branch of branchSummary.all) {
-      count += branch.startsWith('remotes/origin/') ? 1 : 0;
-    }
-    this.unmergedBranchCount = count;
-    let status = this.status;
-    this.uncommited = status ? status.files.length : 0;
-    if (this.tracking) {
-      this.ahead = status ? status.ahead : 0;
-      this.behind = status ? status.behind : 0;
-    } else {
-      this.ahead = this.developToTracking;
-      this.behind = this.trackingToDevelop;
-      this.trackingToDevelop = 0;
-      this.developToTracking = 0;
-    }
-    let trackingLabel = this.tracking ? this.tracking.replace(/HEAD/, '') : '';
-    if (trackingLabel.match(/(develop|master)/)) {
-      trackingLabel = '';
-    }
-    trackingLabel = trackingLabel.replace(/.*\//, '');
-    this.trackingLabel = trackingLabel;
-  }
-
-  private async verify(id: string) {
-    try {
-      const showMaster = await this.gitModule.show([id, '--show-signature']);
-      if (showMaster.indexOf('gpg: Good signature from') >= 0) {
-        return true;
+      const result = await this.gitModule.show([
+        id,
+        '--show-signature',
+        '--date=relative'
+      ]);
+      if (result.indexOf('gpg: Good signature from') >= 0) {
+        return { good: true, result };
       } else {
-        if (showMaster.indexOf("gpg: Can't check signature") >= 0) {
-          return false;
+        if (result.indexOf("gpg: Can't check signature") >= 0) {
+          return { good: false, result };
         }
       }
+      return { good: undefined, result };
     } catch {}
-    return undefined;
+    return { good: undefined, result: undefined };
   }
 
   /**
@@ -240,12 +317,24 @@ export class ModuleDir {
     result.pushArrowLine(masterPushArrowSize);
     this.pushMasterArea(result, textualChalk);
     result.pushLeftArrowLine(unmergedPushArrowSize);
-    this.pushUnmergedArea(result,textualChalk);
+    this.pushUnmergedArea(result, textualChalk);
+    result.pushText(
+      ` ◎ ${
+        textualChalk
+          ? textualChalk(this.headRelativeArea)
+          : this.headRelativeArea
+      }`
+    );
     return result;
   }
 
   pushUnmergedArea(indicator: Indicator, _textualChalk?: Chalk) {
-    return indicator.push('ᚿ', this.unmergedBranchCount, this.theme.unmergedChalk, true);
+    return indicator.push(
+      'ᚿ',
+      this.unmergedBranchCount,
+      this.theme.unmergedChalk,
+      true
+    );
   }
 
   pushMasterArea(indicator: Indicator, textualChalk?: Chalk) {
@@ -284,5 +373,21 @@ export class ModuleDir {
       return '';
     }
     return good === undefined ? '!' : '?';
+  }
+
+  get headRelativeArea() {
+    return `${this.headRelative} by ${this.headAuthor}`;
+  }
+
+  get trackingRelativeArea() {
+    return `${this.trackingRelative} by ${this.trackingAuthor}`;
+  }
+
+  get developRelativeArea() {
+    return `${this.developRelative} by ${this.developAuthor}`;
+  }
+
+  get masterRelativeArea() {
+    return `${this.masterRelative} by ${this.masterAuthor}`;
   }
 }

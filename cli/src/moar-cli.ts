@@ -17,11 +17,11 @@ run();
 
 async function run() {
   const theme = {
-    aheadChalk: chalk.green,
-    behindChalk: chalk.red,
-    uncommitedChalk: chalk.blue,
-    unmergedChalk: chalk.blue,
-    signChalk: chalk.magenta
+    aheadChalk: chalk.green.bold,
+    behindChalk: chalk.red.bold,
+    uncommitedChalk: chalk.blue.bold,
+    unmergedChalk: chalk.blue.bold,
+    signChalk: chalk.magenta.bold
   };
 
   const mainOptions = commandLineArgs(
@@ -67,7 +67,6 @@ async function run() {
  * Show Help
  */
 function showHelp() {
-  const commandLineUsage = require('command-line-usage');
   const sections = [
     {
       header: 'Moar CLI',
